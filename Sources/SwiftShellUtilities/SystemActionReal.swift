@@ -5,6 +5,9 @@ import SwiftShell
 public class SystemActionReal: SystemAction {
     public var swiftShellContext: Context = main
 
+    public init() {
+    }
+
     public func heading(_ type: SystemActionHeading, _ string: String) {
         // do nothing
     }

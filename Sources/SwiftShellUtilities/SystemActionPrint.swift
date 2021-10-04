@@ -15,6 +15,9 @@ public class SystemActionPrint: SystemAction {
     public var createFileStyle: PrintStyle = [ Style.bold ]
     public var runAndPrintStyle: PrintStyle = [ Style.bold ]
 
+    public init() {
+    }
+
     public func heading(_ type: SystemActionHeading, _ string: String) {
         switch type {
         case .section:
