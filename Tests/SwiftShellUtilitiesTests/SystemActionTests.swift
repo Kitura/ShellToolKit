@@ -2,10 +2,29 @@ import XCTest
 @testable import SwiftShellUtilities
 
 final class SystemActionTests: XCTestCase {
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-//        XCTAssertEqual(SystemAction().text, "Hello, World!")
+
+    func testThat_Real_CanExecuteCommand() throws {
+        let action = SystemActionReal()
+
+        try action.runAndPrint(command: "date")
     }
+
+    func testThat_Real_WillThrow_GivenInvalidCommand() throws {
+        let action = SystemActionReal()
+
+        XCTAssertThrowsError(try action.runAndPrint(command: "_this_command-does_not_exist"))
+    }
+
+    func testThat_Composite_CanExecuteCommand() throws {
+        let action = SystemActionComposite( [SystemActionPrint(), SystemActionReal()] )
+
+        try action.runAndPrint(command: "date")
+    }
+
+    func testThat_Composite_WillThrow_GivenInvalidCommand() throws {
+        let action = SystemActionComposite( [SystemActionPrint(), SystemActionReal()] )
+
+        XCTAssertThrowsError(try action.runAndPrint(command: "_this_command-does_not_exist"))
+    }
+
 }
