@@ -76,4 +76,12 @@ public extension SystemAction {
     func runAndPrint(path: String?=nil, command: String...) throws {
         try self.runAndPrint(path: path, command: command)
     }
+
+    /// Execute the given command and show the results
+    /// - Parameters:
+    ///   - command: Command to execute
+    /// - Throws: any problems in executing the command or if the command has a non-0 return code
+    func runAndPrint(command: [String]) throws {
+        try self.runAndPrint(path: nil, command: command)
+    }
 }
