@@ -10,7 +10,7 @@ import SwiftShell
 
 /// A collection of functions that operate on directories and filenames.
 public class DirUtility {
-    static let shared = DirUtility()
+    public static let shared = DirUtility()
 
     let fileManager: FileManager
 

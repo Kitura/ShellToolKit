@@ -9,9 +9,9 @@ import Foundation
 
 /// A collection of utilities that operate on the content of files.
 public class FileUtility {
-    static let shared = FileUtility()
+    public static let shared = FileUtility()
 
-    init() {
+    public init() {
     }
 
     /// Replace all text in a given file
