@@ -30,11 +30,20 @@ public protocol SystemAction {
     /// Attempt to create a file containing the given string
     func createFile(fileUrl: URL, content: String) throws
 
+    /// Remove a file or directory
+    func removeItem(at: URL, options: SwiftShellUtilities.RemoveItemOptions) throws
+
     /// Execute a program and print the results to stdout
     func runAndPrint(path: String?, command: [String]) throws
 }
 
 public extension SystemAction {
+    /// Remove a file or directory.
+    /// No error will be thrown if the file/directory does not exist
+    func removeItem(at url: URL) throws {
+        try self.removeItem(at: url, options: [.ignoreIfNotExist, .removeFile, .removeDirectory])
+    }
+
     /// Print the title of a section
     /// - Parameter string: title to print
     func section(_ string: String) {

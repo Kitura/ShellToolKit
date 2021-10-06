@@ -13,6 +13,7 @@ public class SystemActionPrint: SystemAction {
     public var phaseStyle: PrintStyle = [ Color.cyan, Style.bold ]
     public var createDirectoryStyle: PrintStyle = [ Style.bold ]
     public var createFileStyle: PrintStyle = [ Style.bold ]
+    public var removeItemStyle: PrintStyle = [ Style.bold ]
     public var runAndPrintStyle: PrintStyle = [ Style.bold ]
 
     public init() {
@@ -34,6 +35,20 @@ public class SystemActionPrint: SystemAction {
     public func createFile(fileUrl: URL, content: String) throws {
         output(" > Creating file at path: \(fileUrl.path)", style: createFileStyle)
         print(content.split(separator: "\n").map { "    " + $0 }.joined(separator: "\n").yellow)
+    }
+
+    public func removeItem(at url: URL, options: SwiftShellUtilities.RemoveItemOptions) throws {
+        let whatToRemove: String
+        if options.contains([.removeDirectory, .removeFile]) {
+            whatToRemove = "files/directories"
+        } else if options.contains(.removeFile) {
+            whatToRemove = "file"
+        } else if options.contains(.removeDirectory) {
+            whatToRemove = "directory"
+        } else {
+            throw SystemActionFailure.nothingToRemove
+        }
+        output(" > Remove \(whatToRemove) at path: \(url.path)", style: removeItemStyle)
     }
 
     public func runAndPrint(path: String?, command: [String]) throws {
