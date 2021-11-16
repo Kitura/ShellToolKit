@@ -55,17 +55,17 @@ public class SystemActionReal: SystemAction {
 
     }
 
-    public func runAndPrint(path: String?, command: [String]) throws {
-        let context = self.swiftShellContext.with(path: path)
+    public func runAndPrint(workingDir: String?, command: [String]) throws {
+        let context = self.swiftShellContext.with(workingDir: workingDir)
         let cmd = command.first!
         var args = command
         args.removeFirst()
         try context.runAndPrint(cmd, args)
     }
     
-    public func run(path: String?, command: [String], stdin: String?) -> SystemActionOutput {
+    public func run(workingDir: String?, command: [String], stdin: String?) -> SystemActionOutput {
         let context = self.swiftShellContext
-            .with(path: path)
+            .with(workingDir: workingDir)
             .with(stdin: stdin)
         
         let cmd = command.first!

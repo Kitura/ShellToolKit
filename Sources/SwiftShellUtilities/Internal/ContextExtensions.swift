@@ -10,11 +10,11 @@ import SwiftShell
 
 internal extension Context {
     
-    func with(path: String? = nil) -> CustomContext {
+    func with(workingDir: String? = nil) -> CustomContext {
         var context = CustomContext(self)
-        guard let path = path else { return context }
+        guard let workingDir = workingDir else { return context }
 
-        context.currentdirectory = path
+        context.currentdirectory = workingDir
         
         return context
     }

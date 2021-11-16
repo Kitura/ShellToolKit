@@ -12,9 +12,30 @@ import Foundation
 /// At least one shell will be spawned to execute these commands
 public class GitCommand {
     let action: SystemAction
+    let gitExecutable = "git"
 
     public init(systemAction: SystemAction = SystemActionReal()) {
         self.action = systemAction
+    }
+    
+    public func git(workingDir: String?, args: [String]) throws {
+        try action.runAndPrint(workingDir: workingDir,
+                               command: [ self.gitExecutable ] + args)
+    }
+    
+    public func git(workingDir: String?, args: String...) throws {
+        try self.git(workingDir: workingDir, args: args)
+    }
+
+    public func initializeRepo(workingDir: String?, owner: String, repoName: String, commitMessage: String?=nil, sshUser: String="git", sshHost: String="github.com") throws {
+        
+        try git(workingDir: workingDir, args: "init")
+        try git(workingDir: workingDir, args: "add", ".")
+
+        try git(workingDir: workingDir, args: "branch", "--move", "main")
+        try git(workingDir: workingDir, args: "remote", "add", "origin", "\(sshUser)@\(sshHost)", "\(owner)/\(repoName).git")
+        
+        try git(workingDir: workingDir, args: "push", "-u", "origin", "main")
     }
 
     /// Clone a git repository

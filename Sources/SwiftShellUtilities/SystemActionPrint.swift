@@ -51,20 +51,20 @@ public class SystemActionPrint: SystemAction {
         output(" > Remove \(whatToRemove) at path: \(url.path)", style: removeItemStyle)
     }
 
-    public func runAndPrint(path: String?, command: [String]) throws {
+    public func runAndPrint(workingDir: String?, command: [String]) throws {
         output(" > Executing command: \(command.joined(separator: " "))", style: runAndPrintStyle)
-        if let path = path {
-            output("   Working Directory: \(path)", style: runAndPrintStyle)
+        if let workingDir = workingDir {
+            output("   Working Directory: \(workingDir)", style: runAndPrintStyle)
         }
     }
     
-    public func run(path: String?, command: [String], stdin: String?) -> SystemActionOutput {
+    public func run(workingDir: String?, command: [String], stdin: String?) -> SystemActionOutput {
         output(" > Executing command: \(command.joined(separator: " "))", style: runAndPrintStyle)
         if let stdin = stdin {
             output("   stdin: \(stdin)", style: runAndPrintStyle)
         }
-        if let path = path {
-            output("   Working Directory: \(path)", style: runAndPrintStyle)
+        if let workingDir = workingDir {
+            output("   Working Directory: \(workingDir)", style: runAndPrintStyle)
         }
         
         return SystemActionOutput()

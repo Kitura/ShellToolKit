@@ -34,7 +34,7 @@ public protocol SystemAction {
     func removeItem(at: URL, options: SwiftShellUtilities.RemoveItemOptions) throws
 
     /// Execute a program and print the results to stdout
-    func runAndPrint(path: String?, command: [String]) throws
+    func runAndPrint(workingDir: String?, command: [String]) throws
     
     /// Execute the given command and return the output
     /// - Parameters:
@@ -42,7 +42,7 @@ public protocol SystemAction {
     ///   - command: Command to execute
     /// - Throws: any problems in executing the command or if the command has a non-0 return code
     /// - Returns: stdout and stderr
-    func run(path: String?, command: [String], stdin: String?) -> SystemActionOutput
+    func run(workingDir: String?, command: [String], stdin: String?) -> SystemActionOutput
 }
 
 public extension SystemAction {
@@ -81,8 +81,8 @@ public extension SystemAction {
     ///   - path: If not-nil, this will be the current working directory when the command is exectued.
     ///   - command: Command to execute
     /// - Throws: any problems in executing the command or if the command has a non-0 return code
-    func runAndPrint(path: String?=nil, command: String...) throws {
-        try self.runAndPrint(path: path, command: command)
+    func runAndPrint(workingDir: String?=nil, command: String...) throws {
+        try self.runAndPrint(workingDir: workingDir, command: command)
     }
 
     /// Execute the given command and show the results
@@ -90,7 +90,7 @@ public extension SystemAction {
     ///   - command: Command to execute
     /// - Throws: any problems in executing the command or if the command has a non-0 return code
     func runAndPrint(command: [String]) throws {
-        try self.runAndPrint(path: nil, command: command)
+        try self.runAndPrint(workingDir: nil, command: command)
     }
     
     /// Execute the given command and return the output
@@ -98,6 +98,6 @@ public extension SystemAction {
     /// - Throws: any problems in executing the command or if the command has a non-0 return code
     /// - Returns: stdout and stderr
     func run(command: [String], stdin: String?=nil) -> SystemActionOutput {
-        self.run(path: nil, command: command, stdin: stdin)
+        self.run(workingDir: nil, command: command, stdin: stdin)
     }
 }

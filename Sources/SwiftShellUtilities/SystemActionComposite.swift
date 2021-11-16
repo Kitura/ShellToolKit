@@ -32,16 +32,16 @@ public class SystemActionComposite: SystemAction {
         }
     }
 
-    public func runAndPrint(path: String?, command: [String]) throws {
+    public func runAndPrint(workingDir: String?, command: [String]) throws {
         try self.actions.forEach {
-            try $0.runAndPrint(path: path, command: command)
+            try $0.runAndPrint(workingDir: workingDir, command: command)
         }
     }
     
-    public func run(path: String?, command: [String], stdin: String?) -> SystemActionOutput {
+    public func run(workingDir: String?, command: [String], stdin: String?) -> SystemActionOutput {
         var output = SystemActionOutput()
         self.actions.forEach {
-            let result = $0.run(path: path, command: command, stdin: stdin)
+            let result = $0.run(workingDir: workingDir, command: command, stdin: stdin)
             
             let exitCode: Int? = result.isSuccess ? result.exitCode : nil
 
