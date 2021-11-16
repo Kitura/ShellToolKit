@@ -35,6 +35,14 @@ public protocol SystemAction {
 
     /// Execute a program and print the results to stdout
     func runAndPrint(path: String?, command: [String]) throws
+    
+    /// Execute the given command and return the output
+    /// - Parameters:
+    ///   - path: If not-nil, this will be the current working directory when the command is exectued.
+    ///   - command: Command to execute
+    /// - Throws: any problems in executing the command or if the command has a non-0 return code
+    /// - Returns: stdout and stderr
+    func run(path: String?, command: [String], stdin: String?) -> SystemActionOutput
 }
 
 public extension SystemAction {
@@ -83,5 +91,13 @@ public extension SystemAction {
     /// - Throws: any problems in executing the command or if the command has a non-0 return code
     func runAndPrint(command: [String]) throws {
         try self.runAndPrint(path: nil, command: command)
+    }
+    
+    /// Execute the given command and return the output
+    /// - Parameter command: Command to execute
+    /// - Throws: any problems in executing the command or if the command has a non-0 return code
+    /// - Returns: stdout and stderr
+    func run(command: [String], stdin: String?=nil) -> SystemActionOutput {
+        self.run(path: nil, command: command, stdin: stdin)
     }
 }

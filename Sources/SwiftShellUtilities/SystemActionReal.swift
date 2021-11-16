@@ -56,13 +56,26 @@ public class SystemActionReal: SystemAction {
     }
 
     public func runAndPrint(path: String?, command: [String]) throws {
-        var context = CustomContext(self.swiftShellContext)
-        if let path = path {
-            context.currentdirectory = path
-        }
+        let context = self.swiftShellContext.with(path: path)
         let cmd = command.first!
         var args = command
         args.removeFirst()
         try context.runAndPrint(cmd, args)
     }
+    
+    public func run(path: String?, command: [String], stdin: String?) -> SystemActionOutput {
+        let context = self.swiftShellContext
+            .with(path: path)
+            .with(stdin: stdin)
+        
+        let cmd = command.first!
+        var args = command
+        args.removeFirst()
+
+        let result = context.run(cmd, args)
+        
+        return SystemActionOutput(stdout: result.stdout, stderr: result.stderror, exitCode: result.exitcode)
+    }
+    
+
 }

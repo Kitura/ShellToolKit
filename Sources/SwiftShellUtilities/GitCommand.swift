@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  GitCommand.swift
 //  
 //
 //  Created by Danny Sung on 10/03/2021.

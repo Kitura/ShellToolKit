@@ -27,4 +27,14 @@ final class SystemActionTests: XCTestCase {
         XCTAssertThrowsError(try action.runAndPrint(command: "_this_command-does_not_exist"))
     }
 
+    func testThat_StdinString_CanBeSent() throws {
+        let inputValue = "Hello World!"
+        let expectedValue = inputValue
+        
+        let action = SystemActionComposite( [SystemActionPrint(), SystemActionReal()] )
+        
+        let output = action.run(command: ["cat"], stdin: inputValue)
+        
+        XCTAssertEqual(expectedValue, output.stdout)
+    }
 }

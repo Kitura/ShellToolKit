@@ -57,6 +57,18 @@ public class SystemActionPrint: SystemAction {
             output("   Working Directory: \(path)", style: runAndPrintStyle)
         }
     }
+    
+    public func run(path: String?, command: [String], stdin: String?) -> SystemActionOutput {
+        output(" > Executing command: \(command.joined(separator: " "))", style: runAndPrintStyle)
+        if let stdin = stdin {
+            output("   stdin: \(stdin)", style: runAndPrintStyle)
+        }
+        if let path = path {
+            output("   Working Directory: \(path)", style: runAndPrintStyle)
+        }
+        
+        return SystemActionOutput()
+    }
 
     private func output(_ string: String, style: PrintStyle) {
         print(string.style(enabled: self.enableStyle, printStyle: style))

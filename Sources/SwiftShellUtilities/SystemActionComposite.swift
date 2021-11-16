@@ -37,4 +37,17 @@ public class SystemActionComposite: SystemAction {
             try $0.runAndPrint(path: path, command: command)
         }
     }
+    
+    public func run(path: String?, command: [String], stdin: String?) -> SystemActionOutput {
+        var output = SystemActionOutput()
+        self.actions.forEach {
+            let result = $0.run(path: path, command: command, stdin: stdin)
+            
+            let exitCode: Int? = result.isSuccess ? result.exitCode : nil
+
+            output = output.appending(stdout: result.stdout, stderr: result.stderr, exitCode: exitCode)
+        }
+        
+        return output
+    }
 }
