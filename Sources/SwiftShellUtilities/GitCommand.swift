@@ -33,7 +33,7 @@ public class GitCommand {
         try git(workingDir: workingDir, args: "add", ".")
 
         try git(workingDir: workingDir, args: "branch", "--move", "main")
-        try git(workingDir: workingDir, args: "remote", "add", "origin", "\(sshUser)@\(sshHost)", "\(owner)/\(repoName).git")
+        try git(workingDir: workingDir, args: "remote", "add", "origin", "\(sshUser)@\(sshHost):\(owner)/\(repoName).git")
         
         try git(workingDir: workingDir, args: "push", "-u", "origin", "main")
     }
