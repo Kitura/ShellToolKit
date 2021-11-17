@@ -52,14 +52,18 @@ public class SystemActionPrint: SystemAction {
     }
 
     public func runAndPrint(workingDir: String?, command: [String]) throws {
-        output(" > Executing command: \(command.joined(separator: " "))", style: runAndPrintStyle)
+        let quotedCommand = quoted(command: command)
+        
+        output(" > Executing command: \(quotedCommand.joined(separator: " "))", style: runAndPrintStyle)
         if let workingDir = workingDir {
             output("   Working Directory: \(workingDir)", style: runAndPrintStyle)
         }
     }
     
     public func run(workingDir: String?, command: [String], stdin: String?) -> SystemActionOutput {
-        output(" > Executing command: \(command.joined(separator: " "))", style: runAndPrintStyle)
+        let quotedCommand = quoted(command: command)
+
+        output(" > Executing command: \(quotedCommand.joined(separator: " "))", style: runAndPrintStyle)
         if let stdin = stdin {
             output("   stdin: \(stdin)", style: runAndPrintStyle)
         }
@@ -72,6 +76,24 @@ public class SystemActionPrint: SystemAction {
 
     private func output(_ string: String, style: PrintStyle) {
         print(string.style(enabled: self.enableStyle, printStyle: style))
+    }
+    
+    private func quoted(command: [String]) -> [String] {
+        let quotedCommand = command.map({ text -> String in
+            if text.contains(" ") {
+                let quoteChar: String
+                if text.contains("'") {
+                    quoteChar = "\""
+                } else {
+                    quoteChar = "'"
+                }
+                return quoteChar + text + quoteChar
+            } else {
+                return text
+            }
+        })
+
+        return quotedCommand
     }
 }
 
