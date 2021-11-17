@@ -31,6 +31,7 @@ public class GitCommand {
         
         try git(workingDir: workingDir, args: "init")
         try git(workingDir: workingDir, args: "add", ".")
+        try git(workingDir: workingDir, args: "commit", "-m", commitMessage ?? "Initial Import")
 
         try git(workingDir: workingDir, args: "branch", "--move", "main")
         try git(workingDir: workingDir, args: "remote", "add", "origin", "\(sshUser)@\(sshHost):\(owner)/\(repoName).git")
