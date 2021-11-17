@@ -41,20 +41,29 @@ public class GitCommand {
 
     /// Clone a git repository
     /// - Parameters:
-    ///   - repo: repository to clone (ssh/http/https/file path)
+    ///   - repo: repository to clone (http/https)
     ///   - outdir: output path (relative or absolute).  Git will create this directory.
     ///   - shallow: If true, use --depth=1
     /// - Throws: `KituraCommandCore.Failures.directoryExists(outdir)` if outdir already exists
     public func clone(repo: URL, outdir: URL, shallow: Bool=false) throws {
+        try self.clone(repo: repo.absoluteString, outdir: outdir, shallow: shallow)
+    }
+    
+    /// Clone a git repository
+    /// - Parameters:
+    ///   - repo: repository to clone (ssh/file path)
+    ///   - outdir: output path (relative or absolute).  Git will create this directory.
+    ///   - shallow: If true, use --depth=1
+    /// - Throws: `KituraCommandCore.Failures.directoryExists(outdir)` if outdir already exists
+    public func clone(repo: String, outdir: URL, shallow: Bool=false) throws {
         if DirUtility.shared.fileExists(url: outdir) {
             throw SystemActionFailure.directoryExists(outdir)
         }
-
-        let repoString = repo.absoluteString
+        
         if shallow {
-            try action.runAndPrint(command: "git", "clone", "--depth", "1", repoString, outdir.path)
+            try action.runAndPrint(command: "git", "clone", "--depth", "1", repo, outdir.path)
         } else {
-            try action.runAndPrint(command: "git", "clone", repoString, outdir.path)
+            try action.runAndPrint(command: "git", "clone", repo, outdir.path)
         }
     }
 }
