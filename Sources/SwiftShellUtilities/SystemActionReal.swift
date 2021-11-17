@@ -77,5 +77,8 @@ public class SystemActionReal: SystemAction {
         return SystemActionOutput(stdout: result.stdout, stderr: result.stderror, exitCode: result.exitcode)
     }
     
+    public func executeBlock(_ description: String?, _ block: () throws -> Void) rethrows {
+        try block()
+    }
 
 }

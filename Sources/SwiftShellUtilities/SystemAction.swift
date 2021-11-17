@@ -43,6 +43,12 @@ public protocol SystemAction {
     /// - Throws: any problems in executing the command or if the command has a non-0 return code
     /// - Returns: stdout and stderr
     func run(workingDir: String?, command: [String], stdin: String?) -> SystemActionOutput
+    
+    /// Execute a given block
+    /// - Parameters:
+    ///   - block: block to execute
+    ///   - description: description of block to execute
+    func executeBlock(_ description: String?, _ block: () throws ->Void ) rethrows
 }
 
 public extension SystemAction {

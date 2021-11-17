@@ -73,7 +73,15 @@ public class SystemActionPrint: SystemAction {
         
         return SystemActionOutput()
     }
+    
+    public func executeBlock(_ description: String?, _ block: () throws -> Void) rethrows {
+        if let description = description {
+            output(" > \(description)", style: runAndPrintStyle)
+        }
+    }
 
+    // MARK: - Private Methods
+    
     private func output(_ string: String, style: PrintStyle) {
         print(string.style(enabled: self.enableStyle, printStyle: style))
     }

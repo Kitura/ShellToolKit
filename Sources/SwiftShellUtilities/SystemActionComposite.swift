@@ -50,4 +50,10 @@ public class SystemActionComposite: SystemAction {
         
         return output
     }
+    
+    public func executeBlock(_ description: String?, _ block: () throws -> Void) rethrows {
+        try self.actions.forEach {
+            try $0.executeBlock(description, block)
+        }
+    }
 }
