@@ -35,13 +35,12 @@ public class GitHub {
         case `public`
     }
     public enum CreateOptions {
-        case skipConfirm
         case description(String)
         case gitignore(String)
         case homepage(URL)
         case license(String)
         case access(CreateAccess)
-        case team(String)
+        case team(Int)
     }
     
     /// Create a repository on github.com
@@ -53,33 +52,50 @@ public class GitHub {
     /// - Throws:
     ///   -  `CommandError.returnedErrorCode(command: String, errorcode: Int)` if the exit code is anything but 0.
     ///   - `CommandError.inAccessibleExecutable(path: String)` if 'executable’ turned out to be not so executable after all.
-    public func createRepository(organization: String?=nil, name: String, options: [CreateOptions]=[]) throws {
-        var command: [String] = [ "gh", "repo", "create" ]
+    public func createRepository(organization: String, name: String, options: [CreateOptions]=[]) throws {
         
-        if let org = organization {
-            command.append("\(org)/\(name)")
-        } else {
-            command.append(name)
+        struct Body: Codable {
+            let name: String
+            var description: String?
+            var homepage: URL?
+            var `private`: Bool?
+            var visibility: String?
+            var gitignore_template: String?
+            var license_template: String?
+            var team_id: Int?
         }
+        var body = Body(name: name)
         
         for option in options {
             switch option {
-            case .skipConfirm: command.append("--confirm")
-            case .description(let text): command.append(contentsOf: ["--description", text])
-            case .gitignore(let template): command.append(contentsOf: ["--gitignore", template])
-            case .homepage(let url): command.append(contentsOf: ["-homepage", url.absoluteString])
-            case .license(let template): command.append(contentsOf: ["--license", template])
-            case .team(let name): command.append(contentsOf: ["--team", name])
+            case .description(let text): body.description = text
+            case .gitignore(let template): body.gitignore_template = template
+            case .homepage(let url): body.homepage = url
+            case .license(let template): body.license_template = template
+            case .team(let teamId): body.team_id = teamId
             case .access(let access):
                 switch access {
-                case .internal: command.append("--internal")
-                case .private: command.append("--private")
-                case .public: command.append("--public")
+                case .internal:
+                    body.private = true
+                    body.visibility = "internal"
+                case .private:
+                    body.private = true
+                    body.visibility = "private"
+                case .public:
+                    body.private = false
+                    body.visibility = "public"
                 }
             }
         }
         
-        try action.runAndPrint(command: command)
+        let encoder = JSONEncoder()
+        let jsonData = try encoder.encode(body)
+        let jsonString = String(data: jsonData, encoding: .utf8)!
+ 
+        try self.api(endpoint: "/orgs/\(organization)/repos", options: [
+            .httpMethod("POST"),
+            .requestBody(jsonString)
+        ])
     }
     
     // MARK: API calls
