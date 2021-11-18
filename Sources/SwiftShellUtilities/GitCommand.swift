@@ -159,7 +159,7 @@ public class GitCommand {
         case quiet
     }
     public func stash(workingDir: String?, action: StashAction, options: [StashOptions]=[]) throws {
-        var args = [action.rawValue]
+        var args = [ "stash", action.rawValue]
         
         for option in options {
             switch option {
