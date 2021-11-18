@@ -75,6 +75,7 @@ public class GitCommand {
         case author(String)
         case date(String)
         case dryRun
+        case allChangedFiles
     }
     public func commit(workingDir: String?, options: [CommitOptions]) throws {
         var args = [ "commit" ]
@@ -86,6 +87,7 @@ public class GitCommand {
             case .message(let text): args += [ "--message", text ]
             case .author(let text): args += [ "--author", text ]
             case .date(let text): args += [ "--date", text ]
+            case .allChangedFiles: args += [ "--all" ]
             case .dryRun: args += [ "--dry-run" ]
             }
         }
