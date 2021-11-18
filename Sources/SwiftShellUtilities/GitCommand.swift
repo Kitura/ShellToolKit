@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftShell
 
 /// A class to wrap `git` commands.
 ///
@@ -175,6 +176,37 @@ public class GitCommand {
             }
         }
         try self.git(workingDir: workingDir, args: args)
+    }
+    
+    /// Temporarily stash changes and execute block
+    ///
+    /// Will only perform `stash pop` operation if `stash push` succeeds.
+    /// - Parameters:
+    ///   - workingDir: Working directory
+    ///   - options: `StashOption`
+    ///   - block: Block to execute between push/pop
+    /// - Throws: `CommandError` from `SwiftShell`
+    public func stash(workingDir: String?, options: [StashOptions]=[], block: ()->Void) throws {
+        var args: [String] =
+            []
+        for option in options {
+            switch option {
+            case .quiet: args += [ "--quiet" ]
+            }
+        }
+
+        let pushCommand = ["git", "stash", "push"] + args
+        let pushOutput = self.action.run(workingDir: workingDir, command: pushCommand, stdin: nil)
+        
+        guard pushOutput.isSuccess else {
+            throw CommandError.returnedErrorCode(command: pushCommand.joined(separator: ""), errorcode: pushOutput.exitCode)
+        }
+
+        block()
+        
+        if pushOutput.stdout.lowercased().contains("no local changes") {
+            try self.stash(workingDir: workingDir, action: .pop, options: options)
+        }
     }
 }
 
