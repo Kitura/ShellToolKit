@@ -195,10 +195,13 @@ public class GitCommand {
             }
         }
 
-        let pushCommand = ["git", "stash", "push"] + args
+        let pushCommand = ["git", "stash", "push"]
         let pushOutput = self.action.run(workingDir: workingDir, command: pushCommand, stdin: nil)
         
         guard pushOutput.isSuccess else {
+            if !options.contains(.quiet) {
+                print(pushOutput.stdout)
+            }
             throw CommandError.returnedErrorCode(command: pushCommand.joined(separator: ""), errorcode: pushOutput.exitCode)
         }
 
