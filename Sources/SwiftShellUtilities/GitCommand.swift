@@ -66,5 +66,60 @@ public class GitCommand {
             try action.runAndPrint(command: "git", "clone", repo, outdir.path)
         }
     }
+    
+    // MARK: Git Push
+    
+    public enum PushOptions {
+        case verbose
+        case quiet
+        case progress
+        case dryRun
+        case force
+    }
+    
+    public func push(workingDir: String?, options: [PushOptions]) throws {
+        var args = [ "push" ]
+        
+        for option in options {
+            switch option {
+            case .verbose: args += [ "--verbose" ]
+            case .quiet: args += [ "--quiet" ]
+            case .progress: args += [ "--progress" ]
+            case .dryRun: args += [ "--dry-run" ]
+            case .force: args += [ "--force" ]
+            }
+        }
+        
+        try self.git(workingDir: workingDir, args: args)
+    }
+
+    // MARK: Pull
+    public enum PullOptions {
+        case verbose
+        case quiet
+        case progress
+        case rebase
+        case dryRun
+        case force
+    }
+    
+    public func pull(workingDir: String?, options: [PullOptions]) throws {
+        var args = [ "pull" ]
+        
+        for option in options {
+            switch option {
+            case .verbose: args += [ "--verbose" ]
+            case .quiet: args += [ "--quiet" ]
+            case .progress: args += [ "--progress" ]
+            case .rebase: args += [ "--rebase" ]
+            case .dryRun: args += [ "--dry-run" ]
+            case .force: args += [ "--force" ]
+            }
+        }
+        
+        try self.git(workingDir: workingDir, args: args)
+    }
+
+    
 }
 
