@@ -186,7 +186,7 @@ public class GitCommand {
     ///   - options: `StashOption`
     ///   - block: Block to execute between push/pop
     /// - Throws: `CommandError` from `SwiftShell`
-    public func stash(workingDir: String?, options: [StashOptions]=[], block: ()->Void) throws {
+    public func stash(workingDir: String?, options: [StashOptions]=[], block: () throws ->Void) throws {
         var args: [String] =
             []
         for option in options {
@@ -202,7 +202,7 @@ public class GitCommand {
             throw CommandError.returnedErrorCode(command: pushCommand.joined(separator: ""), errorcode: pushOutput.exitCode)
         }
 
-        block()
+        try block()
         
         if pushOutput.stdout.lowercased().contains("no local changes") {
             try self.stash(workingDir: workingDir, action: .pop, options: options)
