@@ -67,6 +67,33 @@ public class GitCommand {
         }
     }
     
+    // MAKR: Git Commit
+    public enum CommitOptions {
+        case quiet
+        case verbose
+        case message(String)
+        case author(String)
+        case date(String)
+        case dryRun
+    }
+    public func commit(workingDir: String?, options: [CommitOptions]) throws {
+        var args = [ "commit" ]
+        
+        for option in options {
+            switch option {
+            case .verbose: args += [ "--verbose" ]
+            case .quiet: args += [ "--quiet" ]
+            case .message(let text): args += [ "--message", text ]
+            case .author(let text): args += [ "--author", text ]
+            case .date(let text): args += [ "--date", text ]
+            case .dryRun: args += [ "--dry-run" ]
+            }
+        }
+
+        try self.git(workingDir: workingDir, args: args)
+    }
+    
+    
     // MARK: Git Push
     
     public enum PushOptions {
