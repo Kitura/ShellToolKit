@@ -149,6 +149,24 @@ public class GitCommand {
         try self.git(workingDir: workingDir, args: args)
     }
 
-    
+    // MARK: Stash
+    public enum StashAction: String {
+        case list
+        case pop
+        case push
+    }
+    public enum StashOptions {
+        case quiet
+    }
+    public func stash(workingDir: String?, action: StashAction, options: [StashOptions]=[]) throws {
+        var args = [action.rawValue]
+        
+        for option in options {
+            switch option {
+            case .quiet: args += [ "--quiet" ]
+            }
+        }
+        try self.git(workingDir: workingDir, args: args)
+    }
 }
 
