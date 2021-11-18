@@ -207,7 +207,7 @@ public class GitCommand {
 
         try block()
         
-        if pushOutput.stdout.lowercased().contains("no local changes") {
+        if !pushOutput.stdout.lowercased().contains("no local changes") {
             try self.stash(workingDir: workingDir, action: .pop, options: options)
         }
     }
