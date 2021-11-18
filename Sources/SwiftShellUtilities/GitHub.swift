@@ -178,9 +178,9 @@ public class GitHub {
         return collaborators
     }
     
-    public func addRepositoryCollaborator(owner: String, repo: String, username: String, permission: Collaborator.Permissions, hostname: String? = nil) throws -> String {
+    public func addRepositoryCollaborator(owner: String, repo: String, username: String, permission: CollaboratorPermission, hostname: String? = nil) throws -> String {
         
-        let permissionBody = "{ \"permission\" : \"\(permission)\" }"
+        let permissionBody = "{ \"permission\" : \"\(permission.rawValue)\" }"
         
         let options = APIOptions.hostname(hostname: hostname) + [
             .httpMethod("PUT"),
