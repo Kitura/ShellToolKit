@@ -43,7 +43,7 @@ public class GitCommand {
     
     // MARK: Add
     public func add(workingDir: String?, path: [String]) throws {
-        let args = path
+        let args = ["add"] + path
         
         try git(workingDir: workingDir, args: args)
     }
