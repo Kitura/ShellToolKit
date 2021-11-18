@@ -172,12 +172,14 @@ public class GitHub {
         let output = try self.api(endpoint: "/repos/\(owner)/\(repo)/collaborators", options: options)
         
         let jsonDecoder = JSONDecoder()
+        jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
         let resultData = output.stdout.data(using: .utf8)!
         let collaborators = try jsonDecoder.decode([Collaborator].self, from: resultData)
         
         return collaborators
     }
     
+    @discardableResult
     public func addRepositoryCollaborator(owner: String, repo: String, username: String, permission: CollaboratorPermission, hostname: String? = nil) throws -> String {
         
         let permissionBody = "{ \"permission\" : \"\(permission.rawValue)\" }"
