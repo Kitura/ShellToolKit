@@ -14,38 +14,44 @@ import SwiftShell
 public class GitCommand {
     let action: SystemAction
     let gitExecutable = "git"
+    public var workingDir: String?
 
-    public init(systemAction: SystemAction = SystemActionReal()) {
+    public init(systemAction: SystemAction = SystemActionReal(), workingDir: String?=nil) {
         self.action = systemAction
+        self.workingDir = workingDir
     }
     
     public func git(workingDir: String?, args: [String]) throws {
-        try action.runAndPrint(workingDir: workingDir,
+        let cwd = workingDir ?? self.workingDir
+        try action.runAndPrint(workingDir: cwd,
                                command: [ self.gitExecutable ] + args)
     }
     
     public func git(workingDir: String?, args: String...) throws {
-        try self.git(workingDir: workingDir, args: args)
+        let cwd = workingDir ?? self.workingDir
+        try self.git(workingDir: cwd, args: args)
     }
 
     // MARK: Initialization
     public func initializeRepo(workingDir: String?, owner: String, repoName: String, commitMessage: String?=nil, sshUser: String="git", sshHost: String="github.com") throws {
-        
-        try git(workingDir: workingDir, args: "init")
-        try git(workingDir: workingDir, args: "add", ".")
-        try git(workingDir: workingDir, args: "commit", "-m", commitMessage ?? "Initial Import")
+        let cwd = workingDir ?? self.workingDir
 
-        try git(workingDir: workingDir, args: "branch", "--move", "main")
-        try git(workingDir: workingDir, args: "remote", "add", "origin", "\(sshUser)@\(sshHost):\(owner)/\(repoName).git")
+        try git(workingDir: cwd, args: "init")
+        try git(workingDir: cwd, args: "add", ".")
+        try git(workingDir: cwd, args: "commit", "-m", commitMessage ?? "Initial Import")
+
+        try git(workingDir: cwd, args: "branch", "--move", "main")
+        try git(workingDir: cwd, args: "remote", "add", "origin", "\(sshUser)@\(sshHost):\(owner)/\(repoName).git")
         
-        try git(workingDir: workingDir, args: "push", "-u", "origin", "main")
+        try git(workingDir: cwd, args: "push", "-u", "origin", "main")
     }
     
     // MARK: Add
     public func add(workingDir: String?, path: [String]) throws {
         let args = ["add"] + path
-        
-        try git(workingDir: workingDir, args: args)
+        let cwd = workingDir ?? self.workingDir
+
+        try git(workingDir: cwd, args: args)
     }
 
     /// Clone a git repository
@@ -87,8 +93,9 @@ public class GitCommand {
         case allChangedFiles
     }
     public func commit(workingDir: String?, options: [CommitOptions]) throws {
+        let cwd = workingDir ?? self.workingDir
         var args = [ "commit" ]
-        
+
         for option in options {
             switch option {
             case .verbose: args += [ "--verbose" ]
@@ -101,7 +108,7 @@ public class GitCommand {
             }
         }
 
-        try self.git(workingDir: workingDir, args: args)
+        try self.git(workingDir: cwd, args: args)
     }
     
     
@@ -116,6 +123,7 @@ public class GitCommand {
     }
     
     public func push(workingDir: String?, options: [PushOptions]) throws {
+        let cwd = workingDir ?? self.workingDir
         var args = [ "push" ]
         
         for option in options {
@@ -128,7 +136,7 @@ public class GitCommand {
             }
         }
         
-        try self.git(workingDir: workingDir, args: args)
+        try self.git(workingDir: cwd, args: args)
     }
 
     // MARK: Pull
@@ -142,6 +150,7 @@ public class GitCommand {
     }
     
     public func pull(workingDir: String?, options: [PullOptions]) throws {
+        let cwd = workingDir ?? self.workingDir
         var args = [ "pull" ]
         
         for option in options {
@@ -155,7 +164,7 @@ public class GitCommand {
             }
         }
         
-        try self.git(workingDir: workingDir, args: args)
+        try self.git(workingDir: cwd, args: args)
     }
 
     // MARK: Stash
@@ -168,6 +177,7 @@ public class GitCommand {
         case quiet
     }
     public func stash(workingDir: String?, action: StashAction, options: [StashOptions]=[]) throws {
+        let cwd = workingDir ?? self.workingDir
         var args = [ "stash", action.rawValue]
         
         for option in options {
@@ -175,7 +185,7 @@ public class GitCommand {
             case .quiet: args += [ "--quiet" ]
             }
         }
-        try self.git(workingDir: workingDir, args: args)
+        try self.git(workingDir: cwd, args: args)
     }
     
     /// Temporarily stash changes and execute block
@@ -187,6 +197,8 @@ public class GitCommand {
     ///   - block: Block to execute between push/pop
     /// - Throws: `CommandError` from `SwiftShell`
     public func stash(workingDir: String?, options: [StashOptions]=[], block: () throws ->Void) throws {
+        let cwd = workingDir ?? self.workingDir
+
         var args: [String] =
             []
         for option in options {
@@ -196,7 +208,7 @@ public class GitCommand {
         }
 
         let pushCommand = ["git", "stash", "push"]
-        let pushOutput = self.action.run(workingDir: workingDir, command: pushCommand, stdin: nil)
+        let pushOutput = self.action.run(workingDir: cwd, command: pushCommand, stdin: nil)
         
         guard pushOutput.isSuccess else {
             if !options.contains(.quiet) {
@@ -208,7 +220,7 @@ public class GitCommand {
         try block()
         
         if !pushOutput.stdout.lowercased().contains("no local changes") {
-            try self.stash(workingDir: workingDir, action: .pop, options: options)
+            try self.stash(workingDir: cwd, action: .pop, options: options)
         }
     }
 }
