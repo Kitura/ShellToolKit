@@ -205,7 +205,7 @@ public class GitHub {
         case hostname(String)
         case showToken
     }
-    public func authRefresh(options: [AuthStatusOptions]) throws {
+    public func authStatus(options: [AuthStatusOptions]) throws {
         var args: [String] = []
         
         for option in options {
