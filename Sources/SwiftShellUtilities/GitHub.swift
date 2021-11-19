@@ -12,7 +12,8 @@ import Foundation
 /// At least one shell will be spawned to execute these commands
 public class GitHub {
     let action: SystemAction
-    
+    let executable = "gh"
+
     public enum Failures: LocalizedError {
         case apiCallFailure(Int, String, String)
         
@@ -28,6 +29,16 @@ public class GitHub {
         self.action = systemAction
     }
     
+    // MARK: Base command
+    
+    public func run(args: [String]) throws {
+        try action.runAndPrint(command: [ self.executable ] + args)
+    }
+    
+    public func run(args: String...) throws {
+        try self.run(args: args)
+    }
+
     // MARK: Create Repository
     public enum CreateAccess {
         case `internal`
@@ -166,7 +177,7 @@ public class GitHub {
             }
         }
         
-        try self.action.runAndPrint(command: ["gh", "auth", "login"] + args)
+        try self.run(args: ["auth", "login"] + args)
     }
     
     public enum RefreshOptions {
@@ -183,7 +194,7 @@ public class GitHub {
             }
         }
         
-        try self.action.runAndPrint(command: ["gh", "auth", "refresh"] + args)
+        try self.run(args: ["auth", "refresh"] + args)
     }
     
     public enum LogoutOptions {
@@ -198,7 +209,7 @@ public class GitHub {
             }
         }
         
-        try self.action.runAndPrint(command: ["gh", "auth", "logout"] + args)
+        try self.run(args: ["auth", "logout"] + args)
     }
     
     public enum AuthStatusOptions {
@@ -215,7 +226,7 @@ public class GitHub {
             }
         }
         
-        try self.action.runAndPrint(command: ["gh", "auth", "status"] + args)
+        try self.run(args: ["auth", "status"] + args)
     }
 
     // MARK: Repository Collaborators
