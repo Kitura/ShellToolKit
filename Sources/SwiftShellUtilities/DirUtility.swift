@@ -158,7 +158,11 @@ public class DirUtility {
         guard !executable.contains("/") else {
             return executable
         }
-        let path = SwiftShell.run("/usr/bin/which", executable).stdout
+        let output = SwiftShell.run("/usr/bin/which", executable)
+        guard output.succeeded else {
+            return nil
+        }
+        let path = output.stdout
         return path.isEmpty ? executable : path
     }
     
