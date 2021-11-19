@@ -136,16 +136,20 @@ public class DirUtility {
     /// Remove a file/directory
     /// - Parameters:
     ///   - url: file URL to remove
-    ///   - shouldTrash: If `true` (default), send item to trash rather than removing directly
+    ///   - shouldTrash: If `true` (default), send item to trash rather than removing directly.  This parameter is ignored on Linux and always directly removes the item.
     /// - Returns: URL to object in trash if available
     @discardableResult
     public func removeItem(at url: URL, shouldTrash: Bool = true) throws -> URL? {
         var movedUrl: NSURL? = nil
+#if os(Linux)
+        try fileManager.removeItem(at: url)
+#else
         if shouldTrash {
             try fileManager.trashItem(at: url, resultingItemURL: &movedUrl)
         } else {
             try fileManager.removeItem(at: url)
         }
+#endif
         return movedUrl as URL?
     }
     
