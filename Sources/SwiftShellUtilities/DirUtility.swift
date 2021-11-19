@@ -196,19 +196,19 @@ public class DirUtility {
     /// The temporary directory will be removed once the block is finished.
     /// - Parameters:
     ///   - changeWorkingDirectory: If true (default), the current working directory of the process will be changed to the temporary directory for the duration of the block.  Once the block finishes, the current working directory will be restored.  This may have unexpected behavior in a threaded context.
-    ///   - block: Block to execute
-    public func inTemporaryDirectory(changeWorkingDirectory: Bool=true, _ block: (URL) throws ->Void) throws {
+    ///   - block: Block to execute with parameters (originalPath, temporaryDirectoryPath)
+    public func inTemporaryDirectory(changeWorkingDirectory: Bool=true, _ block: (URL, URL) throws ->Void) throws {
         let tempDir = try createTemporaryDirectory()
+        let origDir = URL(fileURLWithPath: fileManager.currentDirectoryPath)
         
         if changeWorkingDirectory {
-            let workingDir = fileManager.currentDirectoryPath
-            fileManager.changeCurrentDirectoryPath(workingDir)
+            fileManager.changeCurrentDirectoryPath(tempDir.path)
             
-            try block(tempDir)
+            try block(origDir, tempDir)
             
-            fileManager.changeCurrentDirectoryPath(workingDir)
+            fileManager.changeCurrentDirectoryPath(origDir.path)
         } else {
-            try block(tempDir)
+            try block(origDir, tempDir)
         }
         
         try fileManager.removeItem(at: tempDir)
