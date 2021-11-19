@@ -98,6 +98,12 @@ public class GitHub {
         ])
     }
     
+    public func deleteRepository(owner: String, name: String) throws {
+        try self.api(endpoint: "/repos/\(owner)/\(name)", options: [
+            .httpMethod("DELETE")
+        ])
+    }
+    
     // MARK: API calls
     public enum APIOptions {
         case field(String,String)
