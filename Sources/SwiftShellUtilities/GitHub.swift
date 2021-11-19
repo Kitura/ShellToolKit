@@ -31,12 +31,12 @@ public class GitHub {
     
     // MARK: Base command
     
-    public func run(args: [String]) throws {
-        try action.runAndPrint(command: [ self.executable ] + args)
+    public func run(workingDir: String?=nil, args: [String]) throws {
+        try action.runAndPrint(workingDir: workingDir, command: [ self.executable ] + args)
     }
     
-    public func run(args: String...) throws {
-        try self.run(args: args)
+    public func run(workingDir: String?=nil, args: String...) throws {
+        try self.run(workingDir: workingDir, args: args)
     }
 
     // MARK: Create Repository
