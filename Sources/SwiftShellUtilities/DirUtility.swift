@@ -176,5 +176,59 @@ public class DirUtility {
     public func isExecutableInPath(_ executable: String) -> Bool {
         return self.executablePath(executable) != nil
     }
+    
+    // MARK: Temporary directories
+    @discardableResult
+    /// Create a temporary directory
+    /// - Returns: URL path to created directory
+    public func createTemporaryDirectory() throws -> URL {
+        let tempRootDir = fileManager.temporaryDirectory
+        let tempBaseName = ProcessInfo.processInfo.processName + "." + randomNameString(length: 7)
+        let tempDir = tempRootDir.appendingPathComponent(tempBaseName)
+        
+        try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: false, attributes: nil)
+        
+        return tempDir
+    }
+    
+    /// Execute block within a temporary directory.
+    ///
+    /// The temporary directory will be removed once the block is finished.
+    /// - Parameters:
+    ///   - changeWorkingDirectory: If true (default), the current working directory of the process will be changed to the temporary directory for the duration of the block.  Once the block finishes, the current working directory will be restored.  This may have unexpected behavior in a threaded context.
+    ///   - block: Block to execute
+    public func inTemporaryDirectory(changeWorkingDirectory: Bool=true, _ block: (URL) throws ->Void) throws {
+        let tempDir = try createTemporaryDirectory()
+        
+        if changeWorkingDirectory {
+            let workingDir = fileManager.currentDirectoryPath
+            fileManager.changeCurrentDirectoryPath(workingDir)
+            
+            try block(tempDir)
+            
+            fileManager.changeCurrentDirectoryPath(workingDir)
+        } else {
+            try block(tempDir)
+        }
+        
+        try fileManager.removeItem(at: tempDir)
+    }
+    
+    // Source: https://stackoverflow.com/questions/26845307/generate-random-alphanumeric-string-in-swift
+    private func randomNameString(length: Int = 7)->String{
+        enum s {
+            static let c = Array("abcdefghjklmnpqrstuvwxyz12345789")
+            static let k = UInt32(c.count)
+        }
+        
+        var result = [Character](repeating: "-", count: length)
+        
+        for i in 0..<length {
+            let r = Int(arc4random_uniform(s.k))
+            result[i] = s.c[r]
+        }
+        
+        return String(result)
+    }
 }
 
