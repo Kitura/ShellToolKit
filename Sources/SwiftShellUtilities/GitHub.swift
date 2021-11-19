@@ -147,6 +147,77 @@ public class GitHub {
     }
     
     
+    // MARK: Auth
+    public enum LoginOptions {
+        case hostname(String)
+        case scopes([String])
+        case web
+        case token
+    }
+    public func login(options: [LoginOptions]) throws {
+        var args: [String] = []
+        
+        for option in options {
+            switch option {
+            case .hostname(let hostname): args += [ "--hostname", hostname]
+            case .scopes(let scopes): args += [ "--scopes", scopes.joined(separator: ",")]
+            case .web: args += [ "--web" ]
+            case .token: args += [ "--with-token" ]
+            }
+        }
+        
+        try self.action.runAndPrint(command: ["gh", "auth", "login"] + args)
+    }
+    
+    public enum RefreshOptions {
+        case hostname(String)
+        case scopes([String])
+    }
+    public func authRefresh(options: [RefreshOptions]) throws {
+        var args: [String] = []
+        
+        for option in options {
+            switch option {
+            case .hostname(let hostname): args += [ "--hostname", hostname]
+            case .scopes(let scopes): args += [ "--scopes", scopes.joined(separator: ",")]
+            }
+        }
+        
+        try self.action.runAndPrint(command: ["gh", "auth", "refresh"] + args)
+    }
+    
+    public enum LogoutOptions {
+        case hostname(String)
+    }
+    public func logout(options: [LogoutOptions]) throws {
+        var args: [String] = []
+        
+        for option in options {
+            switch option {
+            case .hostname(let hostname): args += [ "--hostname", hostname]
+            }
+        }
+        
+        try self.action.runAndPrint(command: ["gh", "auth", "logout"] + args)
+    }
+    
+    public enum AuthStatusOptions {
+        case hostname(String)
+        case showToken
+    }
+    public func authRefresh(options: [AuthStatusOptions]) throws {
+        var args: [String] = []
+        
+        for option in options {
+            switch option {
+            case .hostname(let hostname): args += [ "--hostname", hostname]
+            case .showToken: args += [ "--show-token"]
+            }
+        }
+        
+        try self.action.runAndPrint(command: ["gh", "auth", "status"] + args)
+    }
+
     // MARK: Repository Collaborators
     public enum CollaboratorPermission: String {
         case pull
