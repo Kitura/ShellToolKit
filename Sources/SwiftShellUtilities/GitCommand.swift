@@ -21,29 +21,31 @@ public class GitCommand {
         self.workingDir = workingDir
     }
     
-    public func git(workingDir: String?, args: [String]) throws {
+    // MARK: Base command
+
+    public func run(workingDir: String?, args: [String]) throws {
         let cwd = workingDir ?? self.workingDir
         try action.runAndPrint(workingDir: cwd,
                                command: [ self.gitExecutable ] + args)
     }
     
-    public func git(workingDir: String?, args: String...) throws {
+    public func run(workingDir: String?, args: String...) throws {
         let cwd = workingDir ?? self.workingDir
-        try self.git(workingDir: cwd, args: args)
+        try self.run(workingDir: cwd, args: args)
     }
 
     // MARK: Initialization
     public func initializeRepo(workingDir: String?, owner: String, repoName: String, commitMessage: String?=nil, sshUser: String="git", sshHost: String="github.com") throws {
         let cwd = workingDir ?? self.workingDir
 
-        try git(workingDir: cwd, args: "init")
-        try git(workingDir: cwd, args: "add", ".")
-        try git(workingDir: cwd, args: "commit", "-m", commitMessage ?? "Initial Import")
+        try run(workingDir: cwd, args: "init")
+        try run(workingDir: cwd, args: "add", ".")
+        try run(workingDir: cwd, args: "commit", "-m", commitMessage ?? "Initial Import")
 
-        try git(workingDir: cwd, args: "branch", "--move", "main")
-        try git(workingDir: cwd, args: "remote", "add", "origin", "\(sshUser)@\(sshHost):\(owner)/\(repoName).git")
+        try run(workingDir: cwd, args: "branch", "--move", "main")
+        try run(workingDir: cwd, args: "remote", "add", "origin", "\(sshUser)@\(sshHost):\(owner)/\(repoName).git")
         
-        try git(workingDir: cwd, args: "push", "-u", "origin", "main")
+        try run(workingDir: cwd, args: "push", "-u", "origin", "main")
     }
     
     // MARK: Add
@@ -51,7 +53,7 @@ public class GitCommand {
         let args = ["add"] + path
         let cwd = workingDir ?? self.workingDir
 
-        try git(workingDir: cwd, args: args)
+        try run(workingDir: cwd, args: args)
     }
 
     /// Clone a git repository
@@ -108,7 +110,7 @@ public class GitCommand {
             }
         }
 
-        try self.git(workingDir: cwd, args: args)
+        try self.run(workingDir: cwd, args: args)
     }
     
     
@@ -136,7 +138,7 @@ public class GitCommand {
             }
         }
         
-        try self.git(workingDir: cwd, args: args)
+        try self.run(workingDir: cwd, args: args)
     }
 
     // MARK: Pull
@@ -164,7 +166,7 @@ public class GitCommand {
             }
         }
         
-        try self.git(workingDir: cwd, args: args)
+        try self.run(workingDir: cwd, args: args)
     }
 
     // MARK: Stash
@@ -185,7 +187,7 @@ public class GitCommand {
             case .quiet: args += [ "--quiet" ]
             }
         }
-        try self.git(workingDir: cwd, args: args)
+        try self.run(workingDir: cwd, args: args)
     }
     
     /// Temporarily stash changes and execute block
