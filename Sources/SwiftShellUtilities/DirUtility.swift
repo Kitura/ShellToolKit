@@ -148,5 +148,25 @@ public class DirUtility {
         }
         return movedUrl as URL?
     }
+    
+    /// Get path to executable (if available)
+    ///
+    /// - Note: Relies on /usr/bin/which
+    /// - Parameter executable: executable name
+    /// - Returns: Full path to executable
+    public func executablePath(_ executable: String) -> String? {
+        guard !executable.contains("/") else {
+            return executable
+        }
+        let path = SwiftShell.run("/usr/bin/which", executable).stdout
+        return path.isEmpty ? executable : path
+    }
+    
+    /// Determine if executable is in path
+    /// - Parameter executable: executable name
+    /// - Returns: true if in path; false otherwise
+    public func isExecutableInPath(_ executable: String) -> Bool {
+        return self.executablePath(executable) != nil
+    }
 }
 
