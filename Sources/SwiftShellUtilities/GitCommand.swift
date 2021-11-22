@@ -124,7 +124,7 @@ public class GitCommand {
         case force
     }
     
-    public func push(workingDir: String?, options: [PushOptions]) throws {
+    public func push(workingDir: String?, options: [PushOptions]=[]) throws {
         let cwd = workingDir ?? self.workingDir
         var args = [ "push" ]
         
