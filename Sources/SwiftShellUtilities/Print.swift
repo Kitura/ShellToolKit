@@ -12,5 +12,11 @@ import Foundation
 ///   - to: `PrintContext` to use (default: .stdout)
 ///   - string: Text to print
 public func print(to fileHandle: FileHandle, _ string: String) {
-    fileHandle.write(Data(string.utf8))
+    let newline: String
+    if !string.hasSuffix("\n") {
+        newline = "\n"
+    } else {
+        newline = ""
+    }
+    fileHandle.write(Data( (string + newline).utf8))
 }
