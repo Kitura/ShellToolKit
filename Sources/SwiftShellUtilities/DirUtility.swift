@@ -177,14 +177,89 @@ public class DirUtility {
         return self.executablePath(executable) != nil
     }
     
+    // MARK: Temporary filenames
+    /// Create a filename suitable for temporary use
+    /// - Parameter fileExtension: File extension to use (default: no extension)
+    /// - Returns: file URL to file
+    /// - Note: The file is guaranteed not to exist at the time of this call, but the file is not created.
+    public func temporaryFilename(ofType fileExtension: String?=nil) -> URL {
+        let tempRootDir = FileManager.default.temporaryDirectory
+        let tempBaseName = ProcessInfo.processInfo.processName + "." + randomNameString(length: 8)
+        
+        var tempFile = tempRootDir.appendingPathComponent(tempBaseName)
+        if let fileExtension = fileExtension {
+            tempFile = tempFile.appendingPathExtension(fileExtension)
+        }
+        
+        if self.fileManager.fileExists(atPath: tempFile.path) {
+            return self.temporaryFilename(ofType: fileExtension)
+        }
+        return tempFile
+    }
+    
+    /// Create and remove a temporary file
+    /// - Parameters:
+    ///   - fileExtension: File extension to use for file (default: none)
+    ///   - initialContent: Initial content to use for file.  (Default: none; empty file)
+    ///   - removeAfterCompletion: If true (default), remove the file after completion handler returns.
+    ///   - completion: completion handler will be passed the URL of the temporary file
+    /// - Note:
+    ///      This function creates temporary files with several gaurantees:
+    ///              * A new unique temporary file will be created in a thread-safe manner
+    ///              * No existing file will be overwritten
+    ///              * The file will exist with the `initialContent` given.  Or it will be a 0-byte file if nil.
+    public func withTemporaryFile(ofType fileExtension: String?=nil, initialContent: Data?, removeAfterCompletion: Bool=true, completion: (URL) throws ->Void) throws {
+        func createFile(fileExtension: String?, content: Data) throws -> (URL) {
+            while true {
+                let tempFilename: URL
+                do {
+                    tempFilename = self.temporaryFilename(ofType: fileExtension)
+                    try content.write(to: tempFilename, options: .withoutOverwriting)
+                    
+                    return tempFilename
+                } catch let error as NSError {
+                    if error.code == NSFileWriteFileExistsError {
+                        // retry with new filename
+                    } else {
+                        throw error
+                    }
+                }
+            }
+        }
+        
+        let startingContent = initialContent ?? Data()
+        let filename = try createFile(fileExtension: fileExtension, content: startingContent)
+        
+        try completion(filename)
+        
+        if removeAfterCompletion {
+            try self.fileManager.removeItem(at: filename)
+        }
+    }
+    
+    /// Create and remove a temporary file
+    /// - Parameters:
+    ///   - fileExtension: File extension to use for file (default: none)
+    ///   - initialContent: Initial content to use for file.  (Default: none; empty file)
+    ///   - removeAfterCompletion: If true (default), remove the file after completion handler returns.
+    ///   - completion: completion handler will be passed the URL of the temporary file
+    /// - Note:
+    ///      This function creates temporary files with several gaurantees:
+    ///              * A new unique temporary file will be created in a thread-safe manner
+    ///              * No existing file will be overwritten
+    ///              * The file will exist with the `initialContent` given.  Or it will be a 0-byte file if nil.
+    public func withTemporaryFile(ofType fileExtension: String?=nil, initialContent: String?, removeAfterCompletion: Bool=true, completion: (URL) throws ->Void) throws {
+
+        let initialData = initialContent?.data(using: .utf8)
+        try withTemporaryFile(ofType: fileExtension, initialContent: initialData, removeAfterCompletion: removeAfterCompletion, completion: completion)
+    }
+    
     // MARK: Temporary directories
     @discardableResult
     /// Create a temporary directory
     /// - Returns: URL path to created directory
     public func createTemporaryDirectory() throws -> URL {
-        let tempRootDir = fileManager.temporaryDirectory
-        let tempBaseName = ProcessInfo.processInfo.processName + "." + randomNameString(length: 7)
-        let tempDir = tempRootDir.appendingPathComponent(tempBaseName)
+        let tempDir = self.temporaryFilename()
         
         try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: false, attributes: nil)
         
