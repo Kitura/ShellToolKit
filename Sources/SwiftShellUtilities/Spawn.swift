@@ -59,6 +59,16 @@ public class Spawn {
         return self.wait()
     }
     
+    /// Run the command and wait for the results
+    /// - Parameters:
+    ///   - args: Arguments to pass to command
+    ///   - environment: Specify the environment to pass to the command
+    /// - Returns: The exit code of the program
+    /// - Throws: `Spawn.Failures`
+    public func run(_ args: String..., environment: Environment = .passthru) throws -> Int {
+        return try self.run(args, environment: environment)
+    }
+    
     /// Run the command, but do not wait for it to terminate.
     ///
     /// You should cal wait() or getStatus() to determine the exit code of the program once terminated.
@@ -108,6 +118,18 @@ public class Spawn {
 
     }
     
+    /// Run the command, but do not wait for it to terminate.
+    ///
+    /// You should cal wait() or getStatus() to determine the exit code of the program once terminated.
+    /// - Parameters:
+    ///   - args: Arguments to pass to command
+    ///   - environment: Specify the environment to pass to the command
+    /// - Throws: `Spawn.Failures`
+    public func runAsync(_ args: String..., environment: Environment = .passthru) throws {
+        try self.runAsync(args, environment: environment)
+    }
+
+    
     /// Wait for the process to terminate.
     ///
     /// If the process has already terminated, this will return immediately.
@@ -144,7 +166,7 @@ public class Spawn {
         }
         let rv = waitpid(pid, &status, options)
         
-        if rv == 0 && WIFEXITED(status) {
+        if (rv == 0 || rv == pid) && WIFEXITED(status) {
             self.returnValue = Int(WEXITSTATUS(status))
         }
         return -1
