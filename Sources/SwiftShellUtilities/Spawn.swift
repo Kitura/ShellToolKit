@@ -54,6 +54,7 @@ public class Spawn {
     ///   - environment: Specify the environment to pass to the command
     /// - Returns: The exit code of the program
     /// - Throws: `Spawn.Failures`
+    @discardableResult
     public func run(_ args: [String] = [], environment: Environment = .passthru) throws -> Int {
         try self.runAsync(args, environment: environment)
         return self.wait()
@@ -65,6 +66,7 @@ public class Spawn {
     ///   - environment: Specify the environment to pass to the command
     /// - Returns: The exit code of the program
     /// - Throws: `Spawn.Failures`
+    @discardableResult
     public func run(_ args: String..., environment: Environment = .passthru) throws -> Int {
         return try self.run(args, environment: environment)
     }
