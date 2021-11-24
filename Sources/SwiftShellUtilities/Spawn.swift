@@ -157,17 +157,26 @@ public class Spawn {
         if let returnValue = self.returnValue {
             return returnValue
         }
-        var status: CInt = 0
-        let options: Int32
+        var status: CInt = -1
+        let options: CInt
         if shouldBlock {
             options = 0
         } else {
             options = WNOHANG
         }
-        let rv = waitpid(pid, &status, options)
+        var rv = waitpid(pid, &status, options)
+        var waitTime: useconds_t = 1000
+        while rv == -1 && errno == EINTR {
+            // Sometimes we can be interrupted trying to get the status, so let's try again until we're not interrupted
+            usleep(waitTime)
+            rv = waitpid(pid, &status, options)
+            waitTime *= 2 // exponential backoff
+        }
         
-        if (rv == 0 || rv == pid) && WIFEXITED(status) {
-            self.returnValue = Int(WEXITSTATUS(status))
+        if rv == pid && WIFEXITED(status) {
+            let returnValue = Int(WEXITSTATUS(status))
+            self.returnValue = returnValue
+            return returnValue
         }
         return -1
     }
