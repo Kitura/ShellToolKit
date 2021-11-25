@@ -68,7 +68,7 @@ public class Spawn {
         let pathDirs = pathValue.components(separatedBy: ":").map({ URL(fileURLWithPath: $0 )})
         for pathDir in pathDirs {
             let pathToFile = pathDir.appendingPathComponent(filename).path
-            if fm.fileExists(atPath: pathToFile) {
+            if fileManager.fileExists(atPath: pathToFile) {
                 return pathToFile
             }
         }
