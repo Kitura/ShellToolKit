@@ -13,6 +13,7 @@ import Foundation
 /// This class is intended to behave like the system() call and provides no mechanism to control stdin/stdout/stderr.
 public class Spawn {
     public let command: String
+    public var fileManager: FileManager
     
     /// Specify the environment to pass to pass to the command being spawned
     public enum Environment {
@@ -46,6 +47,33 @@ public class Spawn {
     /// - Parameter command: Command name.  If a path is not specified, the PATH environment will be used ot search for the command.
     public init(command: String) {
         self.command = command
+        self.fileManager = FileManager.default
+    }
+    
+    /// Search PATH for file
+    /// - Parameter filename: If `filename` does not contain a "/", then the PATH environment is searched in order for the.  If `filename` contains a "/", then simply test for the existence of `filename`
+    /// - Returns: Path to file
+    /// - Throws: `Failures.commandDoesNotExist` if file could not be found
+    /// - Note: This function only tests the existes of the file, it does not ensure the file is executable.
+    public func findFileInPath(filename: String) throws -> String {
+        guard !filename.contains("/") else {
+            guard fileManager.fileExists(atPath: filename) else {
+                throw Failures.commandDoesNotExist
+            }
+            return filename
+        }
+        guard let pathValue = ProcessInfo.processInfo.environment["PATH"] else {
+            return filename
+        }
+        let pathDirs = pathValue.components(separatedBy: ":").map({ URL(fileURLWithPath: $0 )})
+        for pathDir in pathDirs {
+            let pathToFile = pathDir.appendingPathComponent(filename).path
+            if fm.fileExists(atPath: pathToFile) {
+                return pathToFile
+            }
+        }
+        
+        throw Failures.commandDoesNotExist
     }
     
     /// Run the command and wait for the results
@@ -78,9 +106,11 @@ public class Spawn {
     ///   - args: Arguments to pass to command
     ///   - environment: Specify the environment to pass to the command
     /// - Throws: `Spawn.Failures`
+    /// - Note: argv[0] for the calling app will be set to the path to the file discovered if it was found via the PATH environment.  Otherwise it will be whatever was given from `self.command`.
     public func runAsync(_ args: [String] = [], environment: Environment = .passthru) throws {
-        let ccmd = command.cString(using: .utf8)!
-        let cargs = args.map { strdup($0) } + [nil]
+        let filename = try self.findFileInPath(filename: self.command)
+        let ccmd = filename.cString(using: .utf8)!
+        let cargs = ([filename] + args).map { strdup($0) } + [nil]
         let env: [String:String]
         
         switch environment {
@@ -102,7 +132,7 @@ public class Spawn {
         }
         
         var pid: pid_t = 0
-        let retval = posix_spawnp(&pid, ccmd, nil, nil, cargs, cenv)
+        let retval = posix_spawn(&pid, ccmd, nil, nil, cargs, cenv)
         switch retval {
         case 0:
             self.pid = pid
@@ -151,6 +181,8 @@ public class Spawn {
     public var hasTerminated: Bool {
         return self.getStatus() == -1
     }
+    
+    // MARK: Private Methods
     
     private func wait(shouldBlock: Bool) -> Int {
         guard let pid = self.pid else {
