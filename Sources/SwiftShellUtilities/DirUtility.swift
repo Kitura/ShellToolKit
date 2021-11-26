@@ -197,18 +197,23 @@ public class DirUtility {
         return tempFile
     }
     
+    public enum TemporaryFileAction {
+        case removeFile
+        case keepFile
+        case rerunBlock
+    }
+    
     /// Create and remove a temporary file
     /// - Parameters:
     ///   - fileExtension: File extension to use for file (default: none)
     ///   - initialContent: Initial content to use for file.  (Default: none; empty file)
-    ///   - removeAfterCompletion: If true (default), remove the file after completion handler returns.
-    ///   - completion: completion handler will be passed the URL of the temporary file
+    ///   - block: completion handler will be passed the URL of the temporary file
     /// - Note:
     ///      This function creates temporary files with several gaurantees:
     ///              * A new unique temporary file will be created in a thread-safe manner
     ///              * No existing file will be overwritten
     ///              * The file will exist with the `initialContent` given.  Or it will be a 0-byte file if nil.
-    public func withTemporaryFile(ofType fileExtension: String?=nil, initialContent: Data?, removeAfterCompletion: Bool=true, completion: (URL) throws ->Void) throws {
+    public func withTemporaryFile(ofType fileExtension: String?=nil, initialContent: Data?, block: (URL) throws -> TemporaryFileAction) throws {
         func createFile(fileExtension: String?, content: Data) throws -> (URL) {
             while true {
                 let tempFilename: URL
@@ -230,10 +235,18 @@ public class DirUtility {
         let startingContent = initialContent ?? Data()
         let filename = try createFile(fileExtension: fileExtension, content: startingContent)
         
-        try completion(filename)
+        var action: TemporaryFileAction
+        repeat {
+            action = try block(filename)
+        } while action == .rerunBlock
         
-        if removeAfterCompletion {
+        switch action {
+        case .removeFile:
             try self.fileManager.removeItem(at: filename)
+        case .keepFile:
+            break       // do nothing
+        case .rerunBlock:
+            break       // can't happen
         }
     }
     
@@ -242,16 +255,16 @@ public class DirUtility {
     ///   - fileExtension: File extension to use for file (default: none)
     ///   - initialContent: Initial content to use for file.  (Default: none; empty file)
     ///   - removeAfterCompletion: If true (default), remove the file after completion handler returns.
-    ///   - completion: completion handler will be passed the URL of the temporary file
+    ///   - block: block will be passed the URL of the temporary file
     /// - Note:
     ///      This function creates temporary files with several gaurantees:
     ///              * A new unique temporary file will be created in a thread-safe manner
     ///              * No existing file will be overwritten
     ///              * The file will exist with the `initialContent` given.  Or it will be a 0-byte file if nil.
-    public func withTemporaryFile(ofType fileExtension: String?=nil, initialContent: String?, removeAfterCompletion: Bool=true, completion: (URL) throws ->Void) throws {
+    public func withTemporaryFile(ofType fileExtension: String?=nil, initialContent: String?, removeAfterCompletion: Bool=true, block: (URL) throws -> TemporaryFileAction) throws {
 
         let initialData = initialContent?.data(using: .utf8)
-        try withTemporaryFile(ofType: fileExtension, initialContent: initialData, removeAfterCompletion: removeAfterCompletion, completion: completion)
+        try withTemporaryFile(ofType: fileExtension, initialContent: initialData, block: block)
     }
     
     // MARK: Temporary directories
