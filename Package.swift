@@ -23,7 +23,9 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "SwiftShellUtilities",
-            dependencies: [ "SwiftShell", "Rainbow", ]),
+            dependencies: [
+                "SwiftShell", "Rainbow",
+            ]),
         .testTarget(
             name: "SwiftShellUtilitiesTests",
             dependencies: ["SwiftShellUtilities"]),
