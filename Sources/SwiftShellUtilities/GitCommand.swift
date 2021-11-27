@@ -23,19 +23,19 @@ public class GitCommand {
     
     // MARK: Base command
 
-    public func run(workingDir: String?, args: [String]) throws {
+    public func run(workingDir: String?=nil, args: [String]) throws {
         let cwd = workingDir ?? self.workingDir
         try action.runAndPrint(workingDir: cwd,
                                command: [ self.gitExecutable ] + args)
     }
     
-    public func run(workingDir: String?, args: String...) throws {
+    public func run(workingDir: String?=nil, args: String...) throws {
         let cwd = workingDir ?? self.workingDir
         try self.run(workingDir: cwd, args: args)
     }
 
     // MARK: Initialization
-    public func initializeRepo(workingDir: String?, owner: String, repoName: String, commitMessage: String?=nil, sshUser: String="git", sshHost: String="github.com") throws {
+    public func initializeRepo(workingDir: String?=nil, owner: String, repoName: String, commitMessage: String?=nil, sshUser: String="git", sshHost: String="github.com") throws {
         let cwd = workingDir ?? self.workingDir
 
         try run(workingDir: cwd, args: "init")
@@ -49,12 +49,17 @@ public class GitCommand {
     }
     
     // MARK: Add
-    public func add(workingDir: String?, path: [String]) throws {
+    public func add(workingDir: String?=nil, path: [String]) throws {
         let args = ["add"] + path
         let cwd = workingDir ?? self.workingDir
 
         try run(workingDir: cwd, args: args)
     }
+    
+    public func add(workingDir: String?=nil, path: String...) throws {
+        try self.add(workingDir: workingDir, path: path)
+    }
+
 
     /// Clone a git repository
     /// - Parameters:
@@ -124,7 +129,7 @@ public class GitCommand {
         case force
     }
     
-    public func push(workingDir: String?, options: [PushOptions]=[]) throws {
+    public func push(workingDir: String?=nil, options: [PushOptions]=[]) throws {
         let cwd = workingDir ?? self.workingDir
         var args = [ "push" ]
         
@@ -151,7 +156,7 @@ public class GitCommand {
         case force
     }
     
-    public func pull(workingDir: String?, options: [PullOptions]) throws {
+    public func pull(workingDir: String?=nil, options: [PullOptions]) throws {
         let cwd = workingDir ?? self.workingDir
         var args = [ "pull" ]
         
@@ -178,7 +183,7 @@ public class GitCommand {
     public enum StashOptions {
         case quiet
     }
-    public func stash(workingDir: String?, action: StashAction, options: [StashOptions]=[]) throws {
+    public func stash(workingDir: String?=nil, action: StashAction, options: [StashOptions]=[]) throws {
         let cwd = workingDir ?? self.workingDir
         var args = [ "stash", action.rawValue]
         
