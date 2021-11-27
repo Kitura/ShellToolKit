@@ -93,13 +93,12 @@ public class GitCommand {
     public enum CommitOptions {
         case quiet
         case verbose
-        case message(String)
         case author(String)
         case date(String)
         case dryRun
         case allChangedFiles
     }
-    public func commit(workingDir: String?, options: [CommitOptions]) throws {
+    public func commit(workingDir: String?=nil, message: String, options: [CommitOptions]) throws {
         let cwd = workingDir ?? self.workingDir
         var args = [ "commit" ]
 
@@ -107,7 +106,6 @@ public class GitCommand {
             switch option {
             case .verbose: args += [ "--verbose" ]
             case .quiet: args += [ "--quiet" ]
-            case .message(let text): args += [ "--message", text ]
             case .author(let text): args += [ "--author", text ]
             case .date(let text): args += [ "--date", text ]
             case .allChangedFiles: args += [ "--all" ]
@@ -115,7 +113,7 @@ public class GitCommand {
             }
         }
 
-        try self.run(workingDir: cwd, args: args)
+        try self.run(workingDir: cwd, args: args + ["--message", message])
     }
     
     
