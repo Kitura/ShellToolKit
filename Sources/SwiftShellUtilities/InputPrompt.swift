@@ -12,14 +12,14 @@ import CloudKit
 /// A class to help with simple console user input cases where we need a single response from the user (e.g. yes/no)
 public class InputPrompt {
     public var enableColor = true
-    public struct Options {
+    public struct Style {
         var leadingText: String
         var leadingTextColor: Color
         var promptMessageColor: Color
         var allowedResponse: Color
         var responseColor: Color
     }
-    public var options: Options = .normal
+    public var style: Style = .normal
     
     public init() {
     }
@@ -28,13 +28,14 @@ public class InputPrompt {
     /// - Parameters:
     ///   - prompt: The message to prompt with
     ///   - allowedResponses: Valid responses given in the format of ["short" : "long"].  For example ["y", "yes"] or ["n", "no"].  If no valid responses are given, any response is allowed and will return.
+    ///   - style: Optional style to use.  Default will be taken from property `style`
     /// - Returns: Returns the "short" version of the response, regardless of whether the user gave the "short" or "long" version.
     @discardableResult
-    public func input(prompt: String, allowedResponses: [String:String], options: Options?=nil) -> String? {
-        let options = options ?? self.options
-        var leadingText = options.leadingText
+    public func input(prompt: String, allowedResponses: [String:String], style: Style?=nil) -> String? {
+        let style = style ?? self.style
+        var leadingText = style.leadingText
         var message = prompt
-        var userResponsePrefix = ""
+        var userResponsePrefix = "> "
         
         var eachAllowedResponse: [String] = []
         var allowedResponsePairs: [String] = []
@@ -45,18 +46,18 @@ public class InputPrompt {
             allowedResponsePairs.append("\(key)/\(value)")
             allowedResponsesKey[value] = key
         }
-        var allowedResponsesText = "(" + allowedResponsePairs.joined(separator: ", ") + ")"
+        var allowedResponsesText = allowedResponsePairs.joined(separator: ", ")
         
         if enableColor {
-            leadingText = leadingText.applyingColor(options.leadingTextColor)
-            message = message.applyingColor(options.promptMessageColor)
-            allowedResponsesText = allowedResponsesText.applyingColor(options.allowedResponse)
-            userResponsePrefix = userResponsePrefix.applyingColor(options.responseColor)
+            leadingText = leadingText.applyingColor(style.leadingTextColor)
+            message = message.applyingColor(style.promptMessageColor)
+            allowedResponsesText = allowedResponsesText.applyingColor(style.allowedResponse)
+            userResponsePrefix = userResponsePrefix.applyingColor(style.responseColor)
         }
         
         while true {
             print( [leadingText, message].joined(separator: " ") )
-            print( allowedResponsesText + " " + userResponsePrefix, terminator: "")
+            print( allowedResponsesText + userResponsePrefix, terminator: "")
             if self.enableColor { // restore color after user input
                 print("".white, terminator: "")
             }
@@ -73,7 +74,7 @@ public class InputPrompt {
     }
 }
 
-public extension InputPrompt.Options {
-    static let normal = InputPrompt.Options(leadingText: "- ", leadingTextColor: .white, promptMessageColor: .white, allowedResponse: .lightWhite, responseColor: .white)
-    static let error = InputPrompt.Options(leadingText: "* ", leadingTextColor: .lightRed, promptMessageColor: .white, allowedResponse: .lightWhite, responseColor: .white)
+public extension InputPrompt.Style {
+    static let normal = InputPrompt.Style(leadingText: "- ", leadingTextColor: .white, promptMessageColor: .white, allowedResponse: .lightWhite, responseColor: .white)
+    static let error = InputPrompt.Style(leadingText: "* ", leadingTextColor: .lightRed, promptMessageColor: .white, allowedResponse: .lightWhite, responseColor: .white)
 }
