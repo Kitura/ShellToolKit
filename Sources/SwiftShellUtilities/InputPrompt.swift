@@ -21,6 +21,9 @@ public class InputPrompt {
     }
     public var options: Options = .normal
     
+    public init() {
+    }
+    
     /// Prompt the user with a message and wait for the response
     /// - Parameters:
     ///   - prompt: The message to prompt with
