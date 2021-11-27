@@ -34,7 +34,7 @@ public class InputPrompt {
         let options = options ?? self.options
         var leadingText = options.leadingText
         var message = prompt
-        var userResponseColor = ""
+        var userResponsePrefix = ""
         
         var eachAllowedResponse: [String] = []
         var allowedResponsePairs: [String] = []
@@ -45,17 +45,21 @@ public class InputPrompt {
             allowedResponsePairs.append("\(key)/\(value)")
             allowedResponsesKey[value] = key
         }
-        var allowedResponsesText = "(" + allowedResponsePairs.joined(separator: ",") + ")"
+        var allowedResponsesText = "(" + allowedResponsePairs.joined(separator: ", ") + ")"
         
         if enableColor {
             leadingText = leadingText.applyingColor(options.leadingTextColor)
             message = message.applyingColor(options.promptMessageColor)
             allowedResponsesText = allowedResponsesText.applyingColor(options.allowedResponse)
-            userResponseColor = userResponseColor.applyingColor(options.responseColor)
+            userResponsePrefix = userResponsePrefix.applyingColor(options.responseColor)
         }
         
         while true {
-            print( [leadingText, message, allowedResponsesText, userResponseColor].joined(separator: " ") )
+            print( [leadingText, message].joined(separator: " ") )
+            print( allowedResponsesText + " " + userResponsePrefix, terminator: "")
+            if self.enableColor { // restore color after user input
+                print("".white, terminator: "")
+            }
             guard let response = readLine() else {
                 return nil
             }
@@ -69,7 +73,7 @@ public class InputPrompt {
     }
 }
 
-extension InputPrompt.Options {
+public extension InputPrompt.Options {
     static let normal = InputPrompt.Options(leadingText: "- ", leadingTextColor: .white, promptMessageColor: .white, allowedResponse: .lightWhite, responseColor: .white)
     static let error = InputPrompt.Options(leadingText: "* ", leadingTextColor: .lightRed, promptMessageColor: .white, allowedResponse: .lightWhite, responseColor: .white)
 }
