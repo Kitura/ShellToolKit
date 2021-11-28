@@ -7,7 +7,6 @@
 
 import Foundation
 import Rainbow
-import CloudKit
 
 /// A class to help with simple console user input cases where we need a single response from the user (e.g. yes/no)
 public class InputPrompt {
