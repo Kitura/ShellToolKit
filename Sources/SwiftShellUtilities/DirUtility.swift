@@ -311,12 +311,9 @@ public class DirUtility {
         
         var result = [Character](repeating: "-", count: length)
         
+        let cCount = s.c.count
         for i in 0..<length {
-#if os(Linux)
-            let r = Int(random(s.k))
-#else
-            let r = Int(arc4random_uniform(s.k))
-#endif
+            let r = Int.random(in: 0..<cCount)
             result[i] = s.c[r]
         }
         
