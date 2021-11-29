@@ -19,6 +19,10 @@ public class TabularTextFormatter {
     public var paddingAfterColumn: (_ columnIndex: Int) -> Int = { _ in 2 }
     public var justificationForColumn: (_ columnIndex: Int) -> Justification = { _ in .left }
     
+    public init() {
+        
+    }
+    
     /// Goes
     public func render() {
         // 1st pass, determine length of each row
