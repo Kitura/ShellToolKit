@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import System
 
 /// Spawn is a convenient way to run other executables while passing through stdin/stdout.
 ///
@@ -30,17 +31,6 @@ public class Spawn {
         ///
         /// If there are any duplicates, the environment variables specified will take precedence.
         case append([String:String])
-    }
-
-    public enum Failures: LocalizedError {
-        case commandTooLong
-        case argumentTooLong
-        case permissionDenied
-        case ioError
-        case commandDoesNotExist
-        case insufficientMemory
-        case commandBusy
-        case errno(Int32)
     }
 
     private var returnValue: Int?

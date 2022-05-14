@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import System
 
 /// Spawn is a convenient way to run other executables while passing through stdin/stdout.
 ///
@@ -87,17 +88,9 @@ public class SpawnCmd {
         case 0:
             self.pid = pid
             return SpawnCmdStatus(pid: pid)
-        case E2BIG: throw Spawn.Failures.argumentTooLong
-        case EACCES: throw Spawn.Failures.permissionDenied
-        case EIO: throw Spawn.Failures.ioError
-        case ENAMETOOLONG: throw Spawn.Failures.commandTooLong
-        case ENOENT: throw Spawn.Failures.commandDoesNotExist
-        case ENOMEM: throw Spawn.Failures.insufficientMemory
-        case ETXTBSY: throw Spawn.Failures.commandBusy
         default:
-            throw Spawn.Failures.errno(retval)
+            throw System.Errno(rawValue: retval)
         }
-
     }
 
     /// Run the command, but do not wait for it to terminate.

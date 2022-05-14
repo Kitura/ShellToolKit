@@ -6,17 +6,18 @@
 //
 
 import Foundation
+import System
 
 internal extension FileManager {
     /// Search PATH for file
     /// - Parameter filename: If `filename` does not contain a "/", then the PATH environment is searched in order for the.  If `filename` contains a "/", then simply test for the existence of `filename`
     /// - Returns: Path to file
-    /// - Throws: `Failures.commandDoesNotExist` if file could not be found
+    /// - Throws: `System.Errno.noSuchFileOrDirectory` if file could not be found
     /// - Note: This function only tests the existes of the file, it does not ensure the file is executable.
     func findFileInPath(filename: String) throws -> String {
         guard !filename.contains("/") else {
             guard self.fileExists(atPath: filename) else {
-                throw Spawn.Failures.commandDoesNotExist
+                throw System.Errno.noSuchFileOrDirectory
             }
             return filename
         }
@@ -31,6 +32,6 @@ internal extension FileManager {
             }
         }
 
-        throw Spawn.Failures.commandDoesNotExist
+        throw System.Errno.noSuchFileOrDirectory
     }
 }
