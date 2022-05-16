@@ -15,15 +15,17 @@ import System
 public class SpawnCmd {
     public let command: String
     public var fileManager: FileManager
+    public var environment: Spawn.Environment
 
     var pid: pid_t?
     var returnValue: Int?
 
     /// Command to execute when run() or runAsync() is called
     /// - Parameter command: Command name.  If a path is not specified, the PATH environment will be used ot search for the command.
-    public init(command: String) {
+    public init(command: String, environment: Spawn.Environment?=nil) {
         self.command = command
         self.fileManager = FileManager.default
+        self.environment = environment ?? .passthru
     }
 
     /// Run the command and wait for the results
@@ -33,7 +35,7 @@ public class SpawnCmd {
     /// - Returns: The exit code of the program
     /// - Throws: `Spawn.Failures`
     @discardableResult
-    public func run(_ args: [String] = [], environment: Spawn.Environment = .passthru) throws ->  Int {
+    public func run(_ args: [String] = [], environment: Spawn.Environment?=nil) throws ->  Int {
         let cmdStatus = try self.runAsync(args, environment: environment)
         return cmdStatus.wait()
     }
@@ -45,7 +47,7 @@ public class SpawnCmd {
     /// - Returns: The exit code of the program
     /// - Throws: `Spawn.Failures`
     @discardableResult
-    public func run(_ args: String..., environment: Spawn.Environment = .passthru) throws -> Int {
+    public func run(_ args: String..., environment: Spawn.Environment?=nil) throws -> Int {
         return try self.run(args, environment: environment)
     }
 
@@ -58,13 +60,13 @@ public class SpawnCmd {
     /// - Throws: `Spawn.Failures`
     /// - Note: argv[0] for the calling app will be set to the path to the file discovered if it was found via the PATH environment.  Otherwise it will be whatever was given from `self.command`.
     @discardableResult
-    public func runAsync(_ args: [String] = [], environment: Spawn.Environment = .passthru) throws -> SpawnCmdStatus {
+    public func runAsync(_ args: [String] = [], environment: Spawn.Environment?=nil) throws -> SpawnCmdStatus {
         let filename = try self.fileManager.findFileInPath(filename: self.command)
         let ccmd = filename.cString(using: .utf8)!
         let cargs = ([filename] + args).map { strdup($0) } + [nil]
         let env: [String:String]
 
-        switch environment {
+        switch environment ?? self.environment {
         case .empty:
             env = [:]
         case .passthru:
@@ -95,12 +97,14 @@ public class SpawnCmd {
 
     /// Run the command, but do not wait for it to terminate.
     ///
-    /// You should cal wait() or getStatus() to determine the exit code of the program once terminated.
+    /// You should call wait() or getStatus() to determine the exit code of the program once terminated.
     /// - Parameters:
     ///   - args: Arguments to pass to command
     ///   - environment: Specify the environment to pass to the command
     /// - Throws: `Spawn.Failures`
-    public func runAsync(_ args: String..., environment: Spawn.Environment = .passthru) throws {
-        try self.runAsync(args, environment: environment)
+    ///
+    @discardableResult
+    public func runAsync(_ args: String..., environment: Spawn.Environment = .passthru) throws -> SpawnCmdStatus {
+        return try self.runAsync(args, environment: environment)
     }
 }
