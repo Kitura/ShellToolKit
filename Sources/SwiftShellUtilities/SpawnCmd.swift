@@ -18,9 +18,6 @@ public class SpawnCmd {
     public var fileManager: FileManager
     public var environment: Spawn.Environment
 
-    var pid: pid_t?
-    var returnValue: Int?
-
     /// Command to execute when run() or runAsync() is called
     /// - Parameter command: Command name.  If a path is not specified, the PATH environment will be used ot search for the command.
     public init(command: String, environment: Spawn.Environment?=nil) {
@@ -81,7 +78,6 @@ public class SpawnCmd {
         let retval = posix_spawn(&pid, ccmd, nil, nil, cargs, cenv)
         switch retval {
         case 0:
-            self.pid = pid
             return SpawnCmdStatusPid(pid: pid)
         default:
             throw System.Errno(rawValue: retval)
