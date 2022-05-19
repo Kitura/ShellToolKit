@@ -74,3 +74,10 @@ struct BuildCommand: ParsableCommand {
  
  }
  ```
+
+
+##### References
+
+* [Streams of Cocoa: Why It's Still Worth Knowing NSStream](https://pspdfkit.com/blog/2021/streams-of-cocoa-why-its-still-worth-knowing-nsstream/)
+* [The very basics of a terminal emulator](https://www.uninformativ.de/blog/postings/2018-02-24/0/POSTING-en.html)
+* [PtyKit](https://github.com/Kaiede/PtyKit)

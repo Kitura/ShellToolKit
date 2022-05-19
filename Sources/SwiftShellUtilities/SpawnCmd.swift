@@ -7,6 +7,7 @@
 
 import Foundation
 import System
+import SwiftShell
 
 /// Spawn is a convenient way to run other executables while passing through stdin/stdout.
 ///
@@ -53,7 +54,7 @@ public class SpawnCmd {
 
     /// Run the command, but do not wait for it to terminate.
     ///
-    /// You should cal wait() or getStatus() to determine the exit code of the program once terminated.
+    /// You should call wait() or getStatus() to determine the exit code of the program once terminated.
     /// - Parameters:
     ///   - args: Arguments to pass to command
     ///   - environment: Specify the environment to pass to the command
@@ -61,24 +62,16 @@ public class SpawnCmd {
     /// - Note: argv[0] for the calling app will be set to the path to the file discovered if it was found via the PATH environment.  Otherwise it will be whatever was given from `self.command`.
     @discardableResult
     public func runAsync(_ args: [String] = [], environment: Spawn.Environment?=nil) throws -> SpawnCmdStatus {
+        let env = (environment ?? self.environment).dictionary
+        return try self.runAsyncNoPty(args, environment: env)
+    }
+
+    @discardableResult
+    private func runAsyncNoPty(_ args: [String], environment: [String:String]) throws -> SpawnCmdStatus {
         let filename = try self.fileManager.findFileInPath(filename: self.command)
         let ccmd = filename.cString(using: .utf8)!
         let cargs = ([filename] + args).map { strdup($0) } + [nil]
-        let env: [String:String]
-
-        switch environment ?? self.environment {
-        case .empty:
-            env = [:]
-        case .passthru:
-            env = ProcessInfo.processInfo.environment
-        case .exact(let dictionary):
-            env = dictionary
-        case .append(let dictionary):
-            var dict = ProcessInfo.processInfo.environment
-            dictionary.forEach { dict[$0] = $1 }
-            env = dict
-        }
-        let cenv = env.map { strdup("\($0)=\($1)") } + [nil]
+        let cenv = environment.map { strdup("\($0)=\($1)") } + [nil]
         defer {
             cargs.forEach { free($0) }
             cenv.forEach { free($0) }
@@ -89,10 +82,33 @@ public class SpawnCmd {
         switch retval {
         case 0:
             self.pid = pid
-            return SpawnCmdStatus(pid: pid)
+            return SpawnCmdStatusPid(pid: pid)
         default:
             throw System.Errno(rawValue: retval)
         }
+    }
+
+    // TODO: need to implement something to handle stdin/stdout/stderr
+    @discardableResult
+    private func runAsyncPty(_ args: [String], environment: [String:String]) throws -> SpawnCmdStatus {
+        let filename = try self.fileManager.findFileInPath(filename: self.command)
+        let fileUrl = URL(fileURLWithPath: filename)
+
+        print("attempting to run: \(fileUrl)")
+        let pty = try PTYPair()
+        let task = Process()
+        task.executableURL = fileUrl
+        task.arguments = args
+        task.environment = environment
+
+        pty.primaryFileHandle.readabilityHandler = { handle in
+            print("> available data: \(handle.availableData.count) bytes")
+            let s = String(data: handle.availableData, encoding: .utf8)!
+            print(s)
+        }
+
+        try task.run()
+        return SpawnCmdStatusProcess(process: task)
     }
 
     /// Run the command, but do not wait for it to terminate.

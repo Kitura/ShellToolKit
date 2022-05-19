@@ -1,34 +1,19 @@
 //
-//  SpawnCmdStatus.swift
+//  File.swift
 //  
 //
-//  Created by Danny Sung on 05/11/2022.
+//  Created by Danny Sung on 05/17/2022.
 //
 
 import Foundation
 
-public class SpawnCmdStatus {
-    public let pid: pid_t
-    private let monitor: ChildProcessMonitor
+public protocol SpawnCmdStatus {
+    var isRunning: Bool { get }
 
-    init(pid: pid_t) {
-        self.pid = pid
-        self.monitor = ChildProcessMonitor(pid: pid)
-    }
+    var didFinishRunning: Bool { get }
 
-    var isRunning: Bool {
-        self.monitor.isRunning
-    }
+    var exitStatus: Int? { get }
 
-    var didFinishRunning: Bool {
-        self.monitor.didFinishRunning
-    }
-
-    var exitStatus: Int? {
-        self.monitor.status
-    }
-
-    func wait() -> Int {
-        return self.monitor.waitStatus()
-    }
+    @discardableResult
+    func wait() -> Int
 }
