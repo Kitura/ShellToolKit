@@ -4,24 +4,90 @@ import XCTest
 
 final class SpawnTests: XCTestCase {
 
-    func testThat_SpawnTrue_ExitCodeIsZero() throws {
+    func testThat_True_ExitCodeIsZero() throws {
         let inputValue = "true"
         let expectedValue = 0
         
-        let s = try Spawn(command: inputValue)
+        let s = try Spawn.run(inputValue)
         let resolvedValue = s.wait()
         
         XCTAssertEqual(expectedValue, resolvedValue)
     }
 
-    func testThat_SpawnFalse_ExitCodeIsOne() throws {
+    func testThat_False_ExitCodeIsOne() throws {
         let inputValue = "false"
         let expectedValue = 1
         
-        let s = try Spawn(command: inputValue)
+        let s = try Spawn.run(inputValue)
         let resolvedValue = s.wait()
         
         XCTAssertEqual(expectedValue, resolvedValue)
     }
 
+    func testThat_True_ExitCodeIsSuccess() throws {
+        let inputValue = "true"
+        let expectedValue = true
+        let observedValue: Bool
+
+        let s = try Spawn.run(inputValue)
+        s.wait()
+
+        observedValue = s.exitStatusIsSuccessful
+
+        XCTAssertEqual(expectedValue, observedValue)
+    }
+
+    func testThat_False_ExitCodeIsNotSuccess() throws {
+        let inputValue = "false"
+        let expectedValue = false
+        let observedValue: Bool
+
+        let s = try Spawn.run(inputValue)
+        s.wait()
+
+        observedValue = s.exitStatusIsSuccessful
+
+        XCTAssertEqual(expectedValue, observedValue)
+    }
+
+    func testThat_Echo_WithPty_CanReadFromStdout() throws {
+        let inputValue = "hello world"
+        let expectedValue = inputValue
+        var observedValue: String?
+
+        let task = try Spawn.run("/bin/echo", args: ["-n", inputValue], ioMode: .pty, stdout: .reader({ handle in
+
+            let data = handle.availableData
+            guard !data.isEmpty else { return }
+
+            observedValue = String(data: data, encoding: .utf8)!
+        }))
+
+        task.wait()
+
+        XCTAssert(task.exitStatusIsSuccessful)
+
+        XCTAssertEqual(expectedValue, observedValue)
+    }
+    
+
+    func testThat_Echo_WithPipe_CanReadFromStdout() throws {
+        let inputValue = "hello world"
+        let expectedValue = inputValue
+        var observedValue: String?
+
+        let task = try Spawn.run("/bin/echo", args: ["-n", inputValue], ioMode: .pipe, stdout: .reader({ handle in
+
+            let data = handle.availableData
+            guard !data.isEmpty else { return }
+            
+            observedValue = String(data: data, encoding: .utf8)!
+        }))
+
+        task.wait()
+
+        XCTAssert(task.exitStatusIsSuccessful)
+
+        XCTAssertEqual(expectedValue, observedValue)
+    }
 }

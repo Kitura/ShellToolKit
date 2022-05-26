@@ -4,59 +4,66 @@ import XCTest
 
 final class SpawnCmdTests: XCTestCase {
 
-    func testThat_SpawnCmd_WithPty_CanReadFromStdout() throws {
-        let cmd = SpawnCmd(command: "/bin/echo")
-        let t = try cmd.runAsync("hello")
-
-        let result = t.wait()
-        print("result: \(result)")
-    }
-
-    func testThat_SpawnCmd_WithPipe_IsSuccessful() throws {
-        let inputValue = "hello world"
+    func testThat_Echo_Pipe_CanReadStdout() async throws {
+        let inputValue = "Hello World"
         let expectedValue = inputValue
-        var observedValue: String?
+        let observedValue: String
 
         let cmd = SpawnCmd(command: "/bin/echo")
-        let task = try cmd.runAsync(["-n", inputValue], ioMode: .pipe, stdout: .reader({ handle in
+        cmd.context = Spawn.Context(defaultIoMode: .pipe)
+        let capture = Spawn.CaptureOutput()
+        try await cmd.runAndWait(["-n", inputValue], stdout: .reader(capture.readHandler))
 
-            let data = handle.availableData
-            guard !data.isEmpty else { return }
-
-           observedValue = String(data: data, encoding: .utf8)!
-        }))
-
-        task.wait()
-
-        XCTAssert(task.exitStatusIsSuccessful)
-
+        observedValue = String(data: capture.data, encoding: .utf8)!
         XCTAssertEqual(expectedValue, observedValue)
     }
 
-    func testThat_SpawnCmd_WithPty_IsSuccessful() async throws {
-        let inputValue = "hello world"
+    func testThat_Echo_Pty_CanReadStdout() async throws {
+        let inputValue = "Hello World"
         let expectedValue = inputValue
-        var observedValue: String?
+        let observedValue: String
 
         let cmd = SpawnCmd(command: "/bin/echo")
-        let task = try cmd.runAsync(["-n", inputValue], ioMode: .pty, stdout: .reader({ handle in
+        cmd.context = Spawn.Context(defaultIoMode: .pty)
+        let capture = Spawn.CaptureOutput()
+        try await cmd.runAndWait(["-n", inputValue], stdout: .reader(capture.readHandler))
 
-            let data = handle.availableData
-//            print(" got \(data.count) bytes")
-            guard !data.isEmpty else { return }
-
-            observedValue = String(data: data, encoding: .utf8)!
-//            print("read value: \(observedValue)")
-        }), stderr: .discard)
-
-        let exitStatus = await task.exitStatus()
-        print("> exit status: \(exitStatus)")
-
-        XCTAssert(task.exitStatusIsSuccessful)
-
+        observedValue = String(data: capture.data, encoding: .utf8)!
         XCTAssertEqual(expectedValue, observedValue)
     }
 
+
+    func test_trial() throws {
+        let task = Process()
+//        task.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/vim")
+        var fhPair = try Spawn.IOMode.pty.createFileHandlePair()!
+        fhPair.readHandler = { handle in
+            let data = handle.availableData
+            print("> available data: \(data.count) bytes")
+            let s = String(data: data, encoding: .utf8)!
+            print(s)
+        }
+        task.executableURL = URL(fileURLWithPath: "/bin/echo")
+        task.arguments = ["-n", "hello world"]
+        task.standardInput = nil
+//        task.standardOutput = try getHandle()  // why doesn't this work??
+        task.standardOutput = fhPair.processStreamAttachment
+        task.standardError = nil
+
+        print("stdin: \(task.standardInput)")
+        print("stdout: \(task.standardOutput)")
+        print("stderr: \(task.standardError)")
+
+        print("> Running task...")
+        try task.run()
+
+        print("> Waiting for task to complete.")
+        task.waitUntilExit()
+
+        print("> Status code: \(task.terminationStatus)")
+
+//        h.doSomething()
+    }
     func getHandler() -> ((FileHandle)->Void) {
         return { handle in
             let data = handle.availableData
@@ -97,38 +104,6 @@ final class SpawnCmdTests: XCTestCase {
         func doSomething() {
             print("hello")
         }
-    }
-
-    func test_trial() throws {
-        let task = Process()
-//        task.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/vim")
-        var fhPair = try SpawnCmd.IOMode.pty.createFileHandlePair()!
-        fhPair.readHandler = { handle in
-            let data = handle.availableData
-            print("> available data: \(data.count) bytes")
-            let s = String(data: data, encoding: .utf8)!
-            print(s)
-        }
-        task.executableURL = URL(fileURLWithPath: "/bin/echo")
-        task.arguments = ["-n", "hello world"]
-        task.standardInput = nil
-//        task.standardOutput = try getHandle()  // why doesn't this work??
-        task.standardOutput = fhPair.processStreamAttachment
-        task.standardError = nil
-
-        print("stdin: \(task.standardInput)")
-        print("stdout: \(task.standardOutput)")
-        print("stderr: \(task.standardError)")
-
-        print("> Running task...")
-        try task.run()
-
-        print("> Waiting for task to complete.")
-        task.waitUntilExit()
-
-        print("> Status code: \(task.terminationStatus)")
-
-//        h.doSomething()
     }
 
     func test_works2() throws {
