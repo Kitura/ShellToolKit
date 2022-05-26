@@ -9,9 +9,13 @@ import Foundation
 
 public class SpawnCmdStatusProcess: SpawnCmdStatus {
     public let process: Process
+    private let fileHandlePairs: [FileHandlePair]
+    private var terminationStatus: Int?
 
-    init(process: Process) {
+    // Note: Even thoguh we do not use `fileHandlePairs`, we must retain them here until the process terminates otherwise their handlers will not be called.
+    init(process: Process, fileHandlePairs: [FileHandlePair] = []) {
         self.process = process
+        self.fileHandlePairs = fileHandlePairs
     }
 
     public var isRunning: Bool {
@@ -27,8 +31,25 @@ public class SpawnCmdStatusProcess: SpawnCmdStatus {
         return Int(self.process.terminationStatus)
     }
 
+    public func exitStatus() async -> Int {
+        if let terminationStatus = terminationStatus {
+            return terminationStatus
+        }
+        return await withCheckedContinuation { continuation in
+            let exitStatus = self.wait()
+            continuation.resume(returning: exitStatus)
+        }
+    }
+
     public func wait() -> Int {
+        if let terminationStatus = terminationStatus {
+            return terminationStatus
+        }
+
         self.process.waitUntilExit()
-        return Int(self.process.terminationStatus)
+        let terminationStatus = Int(self.process.terminationStatus)
+        self.terminationStatus = terminationStatus
+
+        return terminationStatus
     }
 }

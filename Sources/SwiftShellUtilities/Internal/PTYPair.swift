@@ -8,7 +8,35 @@
 import Foundation
 import System
 
-class PTYPair {
+class PTYPair: FileHandlePair {
+    var writeHandler: fileHandler? {
+        didSet {
+            if let writeHandler = writeHandler {
+                self.primaryFileHandle.writeabilityHandler = { fileHandle in
+                    writeHandler(fileHandle)
+                }
+            } else {
+                self.primaryFileHandle.writeabilityHandler = nil
+            }
+        }
+    }
+
+    var readHandler: fileHandler? {
+        didSet {
+            if let readHandler = readHandler {
+                self.primaryFileHandle.readabilityHandler = { fileHandle in
+                    readHandler(fileHandle)
+                }
+            } else {
+                self.primaryFileHandle.readabilityHandler = nil
+            }
+        }
+    }
+
+    var processStreamAttachment: Any {
+        self.childFileHandle
+    }
+
     let primaryFileHandle: FileHandle
     let childFileHandle: FileHandle
 

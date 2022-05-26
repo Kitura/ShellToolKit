@@ -49,6 +49,56 @@ public class SpawnCmd {
         return try self.run(args, environment: environment)
     }
 
+
+    public enum StreamReaderHandler: Equatable {
+        public static func == (lhs: SpawnCmd.StreamReaderHandler, rhs: SpawnCmd.StreamReaderHandler) -> Bool {
+            switch (lhs, rhs) {
+            case (.discard, .discard): return true
+            case (.passthru, .passthru): return true
+            case (.reader(_), .reader(_)): return false
+            default:
+                return false
+            }
+        }
+
+        case discard
+        case passthru
+        case reader((FileHandle) -> Void)
+    }
+    public enum StreamWriterHandler: Equatable {
+        public static func == (lhs: SpawnCmd.StreamWriterHandler, rhs: SpawnCmd.StreamWriterHandler) -> Bool {
+            switch (lhs, rhs) {
+            case (.discard, .discard): return true
+            case (.passthru, .passthru): return true
+            case (.writer(_), .writer(_)): return false
+            default:
+                return false
+            }
+        }
+
+        case discard
+        case passthru
+        case writer((FileHandle) -> Void)
+    }
+
+    public enum IOMode {
+        case pty
+        case passthru
+        case pipe
+
+        func createFileHandlePair() throws -> FileHandlePair? {
+            switch self {
+            case .pty:
+                return try PTYPair()
+            case .passthru:
+                return nil
+            case .pipe:
+                return PipePair()
+            }
+        }
+
+    }
+
     /// Run the command, but do not wait for it to terminate.
     ///
     /// You should call wait() or getStatus() to determine the exit code of the program once terminated.
@@ -58,13 +108,19 @@ public class SpawnCmd {
     /// - Throws: `Spawn.Failures`
     /// - Note: argv[0] for the calling app will be set to the path to the file discovered if it was found via the PATH environment.  Otherwise it will be whatever was given from `self.command`.
     @discardableResult
-    public func runAsync(_ args: [String] = [], environment: Spawn.Environment?=nil) throws -> SpawnCmdStatus {
+    public func runAsync(_ args: [String] = [], environment: Spawn.Environment?=nil, ioMode: IOMode = .passthru, stdin: StreamWriterHandler = .discard, stdout: StreamReaderHandler = .passthru, stderr: StreamReaderHandler = .passthru) throws -> SpawnCmdStatus {
+
         let env = (environment ?? self.environment).dictionary
-        return try self.runAsyncNoPty(args, environment: env)
+
+        if ioMode == .passthru {
+            return try self.runAsyncPtyPassthru(args, environment: env)
+        } else {
+            return try self.runAsyncStandardIOCapture(args, environment: env, ioMode: ioMode, stdin: stdin, stdout: stdout, stderr: stderr)
+        }
     }
 
     @discardableResult
-    private func runAsyncNoPty(_ args: [String], environment: [String:String]) throws -> SpawnCmdStatus {
+    private func runAsyncPtyPassthru(_ args: [String], environment: [String:String]) throws -> SpawnCmdStatus {
         let filename = try self.fileManager.findFileInPath(filename: self.command)
         let ccmd = filename.cString(using: .utf8)!
         let cargs = ([filename] + args).map { strdup($0) } + [nil]
@@ -84,27 +140,62 @@ public class SpawnCmd {
         }
     }
 
-    // TODO: need to implement something to handle stdin/stdout/stderr
     @discardableResult
-    private func runAsyncPty(_ args: [String], environment: [String:String]) throws -> SpawnCmdStatus {
+    private func runAsyncStandardIOCapture(_ args: [String], environment: [String:String], ioMode: IOMode, stdin: StreamWriterHandler, stdout: StreamReaderHandler, stderr: StreamReaderHandler) throws -> SpawnCmdStatus {
         let filename = try self.fileManager.findFileInPath(filename: self.command)
         let fileUrl = URL(fileURLWithPath: filename)
 
-        print("attempting to run: \(fileUrl)")
-        let pty = try PTYPair()
         let task = Process()
         task.executableURL = fileUrl
         task.arguments = args
         task.environment = environment
 
-        pty.primaryFileHandle.readabilityHandler = { handle in
-            print("> available data: \(handle.availableData.count) bytes")
-            let s = String(data: handle.availableData, encoding: .utf8)!
-            print(s)
+        var fileHandlePairs: [FileHandlePair] = []
+
+        switch stdin {
+        case .discard:
+            task.standardInput = nil
+        case .passthru:
+            break
+        case .writer(let writeHandler):
+            if var fhPair = try ioMode.createFileHandlePair() {
+                fhPair.writeHandler = writeHandler
+                fileHandlePairs.append(fhPair)
+
+                task.standardInput = fhPair.processStreamAttachment
+            }
+        }
+
+        switch stdout {
+        case .discard:
+            task.standardOutput = nil
+        case .passthru:
+            break
+        case .reader(let readHandler):
+            if var fhPair = try ioMode.createFileHandlePair() {
+                fhPair.readHandler = readHandler
+                fileHandlePairs.append(fhPair)
+
+                task.standardOutput = fhPair.processStreamAttachment
+            }
+        }
+
+        switch stderr {
+        case .discard:
+            task.standardError = nil
+        case .passthru:
+            break
+        case .reader(let readHandler):
+            if var fhPair = try ioMode.createFileHandlePair() {
+                fhPair.readHandler = readHandler
+                fileHandlePairs.append(fhPair)
+
+                task.standardError = fhPair.processStreamAttachment
+            }
         }
 
         try task.run()
-        return SpawnCmdStatusProcess(process: task)
+        return SpawnCmdStatusProcess(process: task, fileHandlePairs: fileHandlePairs)
     }
 
     /// Run the command, but do not wait for it to terminate.
