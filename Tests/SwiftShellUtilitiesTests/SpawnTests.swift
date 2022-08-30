@@ -90,4 +90,30 @@ final class SpawnTests: XCTestCase {
 
         XCTAssertEqual(expectedValue, observedValue)
     }
+
+    func testThat_tr_WillTranslateStdin() throws {
+        let inputValue = "hello world"
+        let expectedValue = "HELLO WORLD"
+        var observedValue: String?
+
+//        let filter = Spawn.FilterOutput { data in
+//            return .init(outputData: data, numberOfBytesConsumed: data.count, isEndOfFile: true)
+//        }
+
+        let inputData = inputValue.data(using: .utf8)!
+        let streamOutput = Spawn.StreamOutput {
+            return .init(data: inputData, isEndOfFile: true)
+        }
+
+        let streamInput = Spawn.StreamInput { input in
+            let string = String(data: input.data, encoding: .utf8)
+            observedValue = string
+        }
+
+        let task = try Spawn.run("/usr/bin/tr", args: ["a-z", "A-Z"], ioMode: .pipe, stdin: .writer(streamOutput.writeHandler), stdout: .reader(streamInput.readHandler))
+
+        task.wait()
+        XCTAssert(task.exitStatusIsSuccessful)
+        XCTAssertEqual(expectedValue, observedValue)
+    }
 }

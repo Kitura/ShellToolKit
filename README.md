@@ -83,7 +83,14 @@ struct BuildCommand: ParsableCommand {
 * [StackOverflow: Make pipe fd return true for is_atty() in child process](https://stackoverflow.com/questions/58794526/make-pipe-fd-return-true-for-is-atty-in-child-process)
 * [Streams of Cocoa: Why It's Still Worth Knowing NSStream](https://pspdfkit.com/blog/2021/streams-of-cocoa-why-its-still-worth-knowing-nsstream/)
 * [The very basics of a terminal emulator](https://www.uninformativ.de/blog/postings/2018-02-24/0/POSTING-en.html)
-* [PtyKit](https://github.com/Kaiede/PtyKit)
 * [StackOverflow: How to redirect stdout to stdin using fork and pipe and execvp in c?](https://stackoverflow.com/questions/49407406/how-to-redirect-stdout-to-stdin-using-fork-and-pipe-and-execvp-in-c)
 * [Foundation: NSStream.getBoundStreamsWithBufferSize:inputStream:outputStream:](https://developer.apple.com/documentation/foundation/nsstream/1412683-getboundstreamswithbuffersize?language=objc)
 * [Streams of Cocoa: Why It's Still Worth Knowing NSStream](https://pspdfkit.com/blog/2021/streams-of-cocoa-why-its-still-worth-knowing-nsstream/)
+* [PtyKit](https://github.com/Kaiede/PtyKit)
+* [SwiftyPOSIX](https://github.com/bscothern/SwiftyPOSIX)
+
+### Related/interesting projects
+* [SwiftTermApp](https://github.com/migueldeicaza/SwiftTermApp)
+* [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm)
+* [Curassow](https://github.com/kylef-archive/Curassow/blob/269b9bca201b8690653d76d69c1542f8e304b394/Sources/Curassow/Socket.swift)
+

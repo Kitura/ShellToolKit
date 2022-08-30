@@ -8,7 +8,7 @@
 import Foundation
 
 protocol FileHandlePair {
-    typealias fileHandler = (FileHandle) ->Void
+    typealias fileHandler = (FileHandle) -> Void
 
     var writeHandler: fileHandler? { get set }
     var readHandler: fileHandler? { get set }
