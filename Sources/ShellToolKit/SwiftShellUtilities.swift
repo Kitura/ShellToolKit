@@ -1,10 +1,10 @@
 import Foundation
 
-public struct SwiftShellUtilities {
+public struct ShellToolKit {
 
 }
 
-public extension SwiftShellUtilities {
+public extension ShellToolKit {
     struct RemoveItemOptions: OptionSet {
         public let rawValue: Int
 

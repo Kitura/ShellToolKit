@@ -37,7 +37,7 @@ public class SystemActionPrint: SystemAction {
         print(content.split(separator: "\n").map { "    " + $0 }.joined(separator: "\n").yellow)
     }
 
-    public func removeItem(at url: URL, options: SwiftShellUtilities.RemoveItemOptions) throws {
+    public func removeItem(at url: URL, options: ShellToolKit.RemoveItemOptions) throws {
         let whatToRemove: String
         if options.contains([.removeDirectory, .removeFile]) {
             whatToRemove = "files/directories"

@@ -26,7 +26,7 @@ public class SystemActionComposite: SystemAction {
         }
     }
 
-    public func removeItem(at url: URL, options: SwiftShellUtilities.RemoveItemOptions) throws {
+    public func removeItem(at url: URL, options: ShellToolKit.RemoveItemOptions) throws {
         try self.actions.forEach {
             try $0.removeItem(at: url, options: options)
         }

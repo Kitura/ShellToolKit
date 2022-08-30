@@ -1,7 +1,7 @@
 import Foundation
 import Darwin
 import XCTest
-@testable import SwiftShellUtilities
+@testable import ShellToolKit
 
 final class ChildProcessMonitorTests: XCTestCase {
     let nonexistantPid: pid_t = 31234 // some arbitrary number

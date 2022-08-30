@@ -1,5 +1,5 @@
 import XCTest
-@testable import SwiftShellUtilities
+@testable import ShellToolKit
 
 final class DirUtilityTests: XCTestCase {
     let fileThatShouldExist = URL(fileURLWithPath: "/bin/sh")

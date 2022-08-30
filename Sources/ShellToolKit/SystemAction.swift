@@ -31,7 +31,7 @@ public protocol SystemAction {
     func createFile(fileUrl: URL, content: String) throws
 
     /// Remove a file or directory
-    func removeItem(at: URL, options: SwiftShellUtilities.RemoveItemOptions) throws
+    func removeItem(at: URL, options: ShellToolKit.RemoveItemOptions) throws
 
     /// Execute a program and print the results to stdout
     func runAndPrint(workingDir: String?, command: [String]) throws

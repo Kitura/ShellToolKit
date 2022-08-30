@@ -30,7 +30,7 @@ public class SystemActionReal: SystemAction {
         try content.write(to: fileUrl, atomically: false, encoding: .utf8)
     }
 
-    public func removeItem(at url: URL, options: SwiftShellUtilities.RemoveItemOptions) throws {
+    public func removeItem(at url: URL, options: ShellToolKit.RemoveItemOptions) throws {
         let dir = DirUtility.shared
 
         if !options.contains(.ignoreIfNotExist) {

@@ -1,14 +1,14 @@
-# SwiftShellUtilities
+# ShellToolKit
 <p align="center">
-<a href="https://github.com/Kitura/SwiftShellUtilities/actions?query=workflow%3ASwift"><img src="https://github.com/Kitura/SwiftShellUtilities/workflows/Swift/badge.svg" alt="build status"></a>
+<a href="https://github.com/Kitura/ShellToolKit/actions?query=workflow%3ASwift"><img src="https://github.com/Kitura/ShellToolKit/workflows/Swift/badge.svg" alt="build status"></a>
 <img src="https://img.shields.io/badge/os-macOS-green.svg?style=flat" alt="macOS">
 <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux">
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache2-blue.svg?style=flat" alt="Apache 2"></a>
 <br/>
-<a href="https://swiftpackageindex.com/Kitura/SwiftShellUtilities"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FKitura%2F SwiftShellUtilities%2Fbadge%3Ftype%3Dswift-versions"></a>
-<a href="https://swiftpackageindex.com/Kitura/SwiftShellUtilities"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FKitura%2F SwiftShellUtilities%2Fbadge%3Ftype%3Dplatforms"></a>
+<a href="https://swiftpackageindex.com/Kitura/ShellToolKit"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FKitura%2F ShellToolKit%2Fbadge%3Ftype%3Dswift-versions"></a>
+<a href="https://swiftpackageindex.com/Kitura/ShellToolKit"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FKitura%2F ShellToolKit%2Fbadge%3Ftype%3Dplatforms"></a>
 </p>
-`SwiftShellUtilities` is a set of classes that are typically useful when using Swift as a command-line tool.
+`ShellToolKit` is a set of classes that are typically useful when using Swift as a command-line tool.
 
 ## Installation
 ### [Swift Package Manager](https://swift.org/package-manager/)
@@ -19,12 +19,12 @@ import PackageDescription
 let package = Package(
     name: "YourAwesomeSoftware",
     dependencies: [
-        .package(url: "https://github.com/Kitura/SwiftShellUtilities.git", from: "0.1.0")
+        .package(url: "https://github.com/Kitura/ShellToolKit.git", from: "0.1.0")
     ],
     targets: [
         .target(
             name: "MyApp",
-            dependencies: ["SwiftShellUtilities"]
+            dependencies: ["ShellToolKit"]
         )
     ]
 )
@@ -35,7 +35,7 @@ let package = Package(
 ```
 #!/usr/bin/swift sh
 
-import SwiftShellUtilities          // @Kitura
+import ShellToolKit          // @Kitura
 
 
 ```
