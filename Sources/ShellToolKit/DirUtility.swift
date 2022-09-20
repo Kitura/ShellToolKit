@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftShell
 
 /// A collection of functions that operate on directories and filenames.
 public class DirUtility {
@@ -40,8 +39,8 @@ public class DirUtility {
     /// - Note: This specifically excludes ".git" direcotries.
     public func duplicateFiles(from: URL, to: URL) throws {
         let cmd = "(cd '\(from.path)' && tar -c -f - --exclude .git . ) | (cd '\(to.path)' && tar xf - )"
-        
-        try runAndPrint(bash: cmd)
+
+        try ShellCmd().runAndWait(cmd)
     }
     
     /// Recursively substitute text in filenames and directory names.
@@ -162,8 +161,9 @@ public class DirUtility {
         guard !executable.contains("/") else {
             return executable
         }
-        let output = SwiftShell.run("/usr/bin/which", executable)
-        guard output.succeeded else {
+        guard let output = try? ShellCmd().runAndWait(["/usr/bin/which", executable]),
+              output.didSucceed
+        else {
             return nil
         }
         let path = output.stdout
@@ -301,7 +301,7 @@ public class DirUtility {
         
         try fileManager.removeItem(at: tempDir)
     }
-    
+
     // Source: https://stackoverflow.com/questions/26845307/generate-random-alphanumeric-string-in-swift
     private func randomNameString(length: Int = 7)->String{
         enum s {

@@ -12,7 +12,7 @@ final class SpawnCmdTests: XCTestCase {
         let cmd = SpawnCmd(command: "/bin/echo")
         cmd.context = Spawn.Context(defaultIoMode: .pipe)
         let capture = Spawn.CaptureOutput()
-        try await cmd.runAndWait(["-n", inputValue], stdout: .reader(capture.readHandler))
+        try await cmd.runAndWait(["-n", inputValue], stdout: .readerBlock(capture.readHandler))
 
         observedValue = String(data: capture.data, encoding: .utf8)!
         XCTAssertEqual(expectedValue, observedValue)
@@ -26,7 +26,7 @@ final class SpawnCmdTests: XCTestCase {
         let cmd = SpawnCmd(command: "/bin/echo")
         cmd.context = Spawn.Context(defaultIoMode: .pty)
         let capture = Spawn.CaptureOutput()
-        try await cmd.runAndWait(["-n", inputValue], stdout: .reader(capture.readHandler))
+        try await cmd.runAndWait(["-n", inputValue], stdout: .readerBlock(capture.readHandler))
 
         observedValue = String(data: capture.data, encoding: .utf8)!
         XCTAssertEqual(expectedValue, observedValue)

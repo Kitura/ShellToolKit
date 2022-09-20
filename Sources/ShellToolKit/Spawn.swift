@@ -15,15 +15,34 @@ import System
 public class Spawn {
     public struct Context {
         public let defaultEnvironment: Environment
+        public let workingDirectory: URL?
         public let defaultIoMode: IOMode
         public let fileManager: FileManager
 
         public init(defaultEnvironment: Environment?=nil,
+                    workingDirectory: URL?=nil,
                     defaultIoMode: IOMode?=nil,
                     fileManager: FileManager?=nil) {
             self.defaultEnvironment = defaultEnvironment ?? .passthru
+            self.workingDirectory = workingDirectory
             self.defaultIoMode = defaultIoMode ?? .passthru
             self.fileManager = fileManager ?? .default
+        }
+
+        public func with(workingDirectory: URL?) -> Context {
+            return Context(
+                defaultEnvironment: self.defaultEnvironment,
+                workingDirectory: workingDirectory,
+                defaultIoMode: self.defaultIoMode,
+                fileManager: self.fileManager)
+        }
+        
+        public func with(defaultIoMode: IOMode) -> Context {
+            return Context(
+                defaultEnvironment: self.defaultEnvironment,
+                workingDirectory: self.workingDirectory,
+                defaultIoMode: defaultIoMode,
+                fileManager: self.fileManager)
         }
     }
 
@@ -48,7 +67,9 @@ public class Spawn {
             switch (lhs, rhs) {
             case (.discard, .discard): return true
             case (.passthru, .passthru): return true
-            case (.reader(_), .reader(_)): return false
+            case (.readerBlock(_), .readerBlock(_)): return false
+            case (.reader(let lHandler), .reader(let rHandler)):
+                return lHandler === rHandler
             default:
                 return false
             }
@@ -56,14 +77,17 @@ public class Spawn {
 
         case discard
         case passthru
-        case reader((FileHandle) -> Void)
+        case readerBlock((FileHandle) -> Void)
+        case reader(SpawnOutputHandler)
     }
     public enum StreamWriterHandler: Equatable {
         public static func == (lhs: StreamWriterHandler, rhs: StreamWriterHandler) -> Bool {
             switch (lhs, rhs) {
             case (.discard, .discard): return true
             case (.passthru, .passthru): return true
-            case (.writer(_), .writer(_)): return false
+            case (.writerBlock(_), .writerBlock(_)): return false
+            case (.writer(let lHandler), .writer(let rHandler)):
+                return lHandler === rHandler
             default:
                 return false
             }
@@ -71,7 +95,8 @@ public class Spawn {
 
         case discard
         case passthru
-        case writer((FileHandle) -> Void)
+        case writerBlock((FileHandle) -> Void)
+        case writer(SpawnInputHandler)
     }
 
     public enum IOMode {
@@ -122,6 +147,13 @@ public class Spawn {
         return await task.exitStatus()
     }
 
+    @discardableResult
+    static public func runAndWait(context: Context = Spawn.defaultContext, _ command: String, args: [String] = [], environment: Spawn.Environment?=nil, ioMode: IOMode?=nil, stdin: StreamWriterHandler = .discard, stdout: StreamReaderHandler = .passthru, stderr: StreamReaderHandler = .passthru) throws -> Int {
+
+        let task = try self.run(context: context, command, args: args, environment: environment, ioMode: ioMode, stdin: stdin, stdout: stdout, stderr: stderr)
+
+        return task.wait()
+    }
 }
 
 // MARK: - Private Methods
@@ -140,7 +172,20 @@ extension Spawn {
         }
 
         var pid: pid_t = 0
+
+        let currentDirectory: String?
+        if let workingDirectory = context.workingDirectory?.path {
+            currentDirectory = context.fileManager.currentDirectoryPath
+            context.fileManager.changeCurrentDirectoryPath(workingDirectory)
+        } else {
+            currentDirectory = nil
+        }
+
         let retval = posix_spawn(&pid, ccmd, nil, nil, cargs, cenv)
+
+        if let currentDirectory = currentDirectory {
+            context.fileManager.changeCurrentDirectoryPath(currentDirectory)
+        }
         switch retval {
         case 0:
             return SpawnCmdStatusPid(pid: pid)
@@ -157,19 +202,28 @@ extension Spawn {
 
         let task = Process()
         task.executableURL = fileUrl
+        task.currentDirectoryURL = context.workingDirectory
         task.arguments = args
         task.environment = environment
 
         var fileHandlePairs: [FileHandlePair] = []
 
+        // TODO: This code can use some refactoring
         switch stdin {
         case .discard:
             task.standardInput = nil
         case .passthru:
             break
-        case .writer(let writeHandler):
+        case .writerBlock(let writeHandler):
             if var fhPair = try ioMode.createFileHandlePair() {
                 fhPair.writeHandler = writeHandler
+                fileHandlePairs.append(fhPair)
+
+                task.standardInput = fhPair.processStreamAttachment
+            }
+        case .writer(let writeHandler):
+            if var fhPair = try ioMode.createFileHandlePair() {
+                fhPair.writeHandler = writeHandler.writeHandler
                 fileHandlePairs.append(fhPair)
 
                 task.standardInput = fhPair.processStreamAttachment
@@ -181,9 +235,16 @@ extension Spawn {
             task.standardOutput = nil
         case .passthru:
             break
-        case .reader(let readHandler):
+        case .readerBlock(let readHandler):
             if var fhPair = try ioMode.createFileHandlePair() {
                 fhPair.readHandler = readHandler
+                fileHandlePairs.append(fhPair)
+
+                task.standardOutput = fhPair.processStreamAttachment
+            }
+        case .reader(let readHandler):
+            if var fhPair = try ioMode.createFileHandlePair() {
+                fhPair.readHandler = readHandler.readHandler
                 fileHandlePairs.append(fhPair)
 
                 task.standardOutput = fhPair.processStreamAttachment
@@ -195,9 +256,16 @@ extension Spawn {
             task.standardError = nil
         case .passthru:
             break
-        case .reader(let readHandler):
+        case .readerBlock(let readHandler):
             if var fhPair = try ioMode.createFileHandlePair() {
                 fhPair.readHandler = readHandler
+                fileHandlePairs.append(fhPair)
+
+                task.standardError = fhPair.processStreamAttachment
+            }
+        case .reader(let readHandler):
+            if var fhPair = try ioMode.createFileHandlePair() {
+                fhPair.readHandler = readHandler.readHandler
                 fileHandlePairs.append(fhPair)
 
                 task.standardError = fhPair.processStreamAttachment

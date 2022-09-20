@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftShell
 
 /// A class to wrap `git` commands.
 ///
@@ -219,7 +218,7 @@ public class GitCommand {
             if !options.contains(.quiet) {
                 print(pushOutput.stdout)
             }
-            throw CommandError.returnedErrorCode(command: pushCommand.joined(separator: ""), errorcode: pushOutput.exitCode)
+            throw SpawnCmd.Failures.exitError(errorCode: pushOutput.exitCode, command: pushCommand)
         }
 
         try block()

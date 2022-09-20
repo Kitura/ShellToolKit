@@ -7,7 +7,6 @@
 
 import Foundation
 import System
-import SwiftShell
 
 /// Spawn is a convenient way to run other executables while passing through stdin/stdout.
 ///
@@ -18,12 +17,28 @@ public class SpawnCmd {
     public var environment: Spawn.Environment
     public var context: Spawn.Context
 
+    enum Failures: Error {
+        case exitError(errorCode: Int, command: [String])
+    }
+
     /// Command to execute when runAndWait() or runAsync() is called
     /// - Parameter command: Command name.  If a path is not specified, the PATH environment will be used ot search for the command.
     public init(command: String, environment: Spawn.Environment?=nil, context: Spawn.Context?=nil) {
         self.command = command
         self.environment = environment ?? .passthru
         self.context = context ?? Spawn.defaultContext
+    }
+
+    /// Run the command and wait for the results
+    /// - Parameters:
+    ///   - args: Arguments to pass to command
+    ///   - environment: Specify the environment to pass to the command
+    /// - Returns: The exit code of the program
+    /// - Throws: `Spawn.Failures`
+    @discardableResult
+    public func runAndWait(_ args: [String] = [], environment: Spawn.Environment?=nil, stdin: Spawn.StreamWriterHandler = .discard, stdout: Spawn.StreamReaderHandler = .passthru, stderr: Spawn.StreamReaderHandler = .passthru) throws -> Int {
+        let cmdStatus = try Spawn.runAndWait(context: self.context, self.command, args: args, stdin: stdin, stdout: stdout, stderr: stderr)
+        return cmdStatus
     }
 
     /// Run the command and wait for the results

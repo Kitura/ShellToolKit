@@ -65,10 +65,10 @@ public class SystemActionPrint: SystemAction {
 
         output(" > Executing command: \(quotedCommand.joined(separator: " "))", style: runAndPrintStyle)
         if let stdin = stdin {
-            output("   stdin: \(stdin)", style: runAndPrintStyle)
+            output(" >   stdin: \(stdin)", style: runAndPrintStyle)
         }
         if let workingDir = workingDir {
-            output("   Working Directory: \(workingDir)", style: runAndPrintStyle)
+            output(" >   Working Directory: \(workingDir)", style: runAndPrintStyle)
         }
         
         return SystemActionOutput()

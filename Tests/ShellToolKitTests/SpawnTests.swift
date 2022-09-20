@@ -55,7 +55,7 @@ final class SpawnTests: XCTestCase {
         let expectedValue = inputValue
         var observedValue: String?
 
-        let task = try Spawn.run("/bin/echo", args: ["-n", inputValue], ioMode: .pty, stdout: .reader({ handle in
+        let task = try Spawn.run("/bin/echo", args: ["-n", inputValue], ioMode: .pty, stdout: .readerBlock({ handle in
 
             let data = handle.availableData
             guard !data.isEmpty else { return }
@@ -76,7 +76,7 @@ final class SpawnTests: XCTestCase {
         let expectedValue = inputValue
         var observedValue: String?
 
-        let task = try Spawn.run("/bin/echo", args: ["-n", inputValue], ioMode: .pipe, stdout: .reader({ handle in
+        let task = try Spawn.run("/bin/echo", args: ["-n", inputValue], ioMode: .pipe, stdout: .readerBlock({ handle in
 
             let data = handle.availableData
             guard !data.isEmpty else { return }
@@ -110,7 +110,7 @@ final class SpawnTests: XCTestCase {
             observedValue = string
         }
 
-        let task = try Spawn.run("/usr/bin/tr", args: ["a-z", "A-Z"], ioMode: .pipe, stdin: .writer(streamOutput.writeHandler), stdout: .reader(streamInput.readHandler))
+        let task = try Spawn.run("/usr/bin/tr", args: ["a-z", "A-Z"], ioMode: .pipe, stdin: .writerBlock(streamOutput.writeHandler), stdout: .readerBlock(streamInput.readHandler))
 
         task.wait()
         XCTAssert(task.exitStatusIsSuccessful)

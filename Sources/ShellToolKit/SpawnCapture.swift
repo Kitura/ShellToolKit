@@ -7,15 +7,29 @@
 
 import Foundation
 
+public protocol SpawnOutputHandler: AnyObject {
+    func readHandler(_ fileHandle: FileHandle) -> Void
+}
+
+public protocol SpawnInputHandler: AnyObject {
+    func writeHandler(_ fileHandle: FileHandle) -> Void
+}
+
 extension Spawn {
-    public class CaptureOutput {
+    public class CaptureOutput: SpawnOutputHandler {
         public private(set) var data: Data
+
+        public var string: String {
+            get {
+                return String(data: data, encoding: .utf8) ?? ""
+            }
+        }
 
         init() {
             self.data = Data()
         }
 
-        func readHandler(_ fileHandle: FileHandle) -> Void {
+        public func readHandler(_ fileHandle: FileHandle) -> Void {
             let data = fileHandle.availableData
             guard !data.isEmpty else { return }
 
@@ -23,7 +37,7 @@ extension Spawn {
         }
     }
 
-    public class StreamOutput {
+    public class StreamOutput: SpawnInputHandler {
         let output: () -> Output
 
         struct Output {
@@ -35,7 +49,7 @@ extension Spawn {
             self.output = output
         }
 
-        func writeHandler(_ fileHandle: FileHandle) -> Void {
+        public func writeHandler(_ fileHandle: FileHandle) -> Void {
             let output = self.output()
             do {
                 try fileHandle.write(contentsOf: output.data)
@@ -50,7 +64,7 @@ extension Spawn {
         }
     }
 
-    public class StreamInput {
+    public class StreamInput: SpawnOutputHandler {
         let input: (Input) -> Void
         let chunkSize: Int
 
@@ -64,7 +78,7 @@ extension Spawn {
             self.chunkSize = chunkSize
         }
 
-        func readHandler(_ fileHandle: FileHandle) -> Void {
+        public func readHandler(_ fileHandle: FileHandle) -> Void {
             do {
                 if let data = try fileHandle.read(upToCount: self.chunkSize) {
                     self.input(Input(data: data, isEndOfFile: false))
@@ -74,6 +88,22 @@ extension Spawn {
                 print("StreamInput:\(#function): error: \(error.localizedDescription)")
             }
         }
+    }
+
+    public class StringOutput: SpawnInputHandler {
+        let streamOutput: StreamOutput
+
+        init(_ string: String) {
+            self.streamOutput = StreamOutput({
+                let data = string.data(using: .utf8) ?? Data()
+                return StreamOutput.Output(data: data, isEndOfFile: true)
+            })
+        }
+
+        public func writeHandler(_ fileHandle: FileHandle) {
+            self.streamOutput.writeHandler(fileHandle)
+        }
+
     }
 
     // TODO: In progress -- not working yet

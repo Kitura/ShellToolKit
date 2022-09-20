@@ -1,13 +1,13 @@
 import Foundation
-import SwiftShell
 
 /// Actually perform the function
 public class SystemActionReal: SystemAction {
-    public var swiftShellContext: Context = main
+    public var spawnContext: Spawn.Context
     let fileManager: FileManager
 
     public init(fileManager: FileManager = .default) {
         self.fileManager = fileManager
+        self.spawnContext = Spawn.Context()
     }
 
     public func heading(_ type: SystemActionHeading, _ string: String) {
@@ -56,25 +56,66 @@ public class SystemActionReal: SystemAction {
     }
 
     public func runAndPrint(workingDir: String?, command: [String]) throws {
-        let context = self.swiftShellContext.with(workingDir: workingDir)
+        let context: Spawn.Context
+
+        if let workingDir = workingDir {
+            context = self.spawnContext.with(workingDirectory: URL(fileURLWithPath:  workingDir))
+        } else {
+            context = self.spawnContext
+        }
+
         let cmd = command.first!
         var args = command
         args.removeFirst()
-        try context.runAndPrint(cmd, args)
+
+        let spawn = SpawnCmd(command: cmd, context: context)
+        try spawn.runAndWait(args)
     }
     
     public func run(workingDir: String?, command: [String], stdin: String?) -> SystemActionOutput {
-        let context = self.swiftShellContext
-            .with(workingDir: workingDir)
-            .with(stdin: stdin)
+
+        let context: Spawn.Context
+
+        if let workingDir = workingDir {
+            context = self.spawnContext
+                .with(workingDirectory: URL(fileURLWithPath:  workingDir))
+                .with(defaultIoMode: .passthru)
+        } else {
+            context = self.spawnContext
+                .with(defaultIoMode: .pipe)
+        }
+
+//        let context = self.swiftShellContext
+//            .with(workingDir: workingDir)
+//            .with(stdin: stdin)
         
         let cmd = command.first!
         var args = command
         args.removeFirst()
 
-        let result = context.run(cmd, args)
-        
-        return SystemActionOutput(stdout: result.stdout, stderr: result.stderror, exitCode: result.exitcode)
+        // TODO: Probably can use SpawnCmd.runAndWait() -> Output
+        let spawn = SpawnCmd(command: cmd, context: context)
+        let stdoutCapture = Spawn.CaptureOutput()
+        let stderrCapture = Spawn.CaptureOutput()
+
+        do {
+            let result: Int
+            if let stdin = stdin {
+                let stdinString = Spawn.StringOutput(stdin)
+                result = try spawn.runAndWait(args,
+                                              stdin: .writer(stdinString),
+                                              stdout: .reader(stdoutCapture),
+                                              stderr: .reader(stderrCapture))
+            } else {
+                result = try spawn.runAndWait(args)
+            }
+
+            let stdout = String(data: stdoutCapture.data, encoding: .utf8) ?? ""
+            let stderr = String(data: stderrCapture.data, encoding: .utf8) ?? ""
+            return SystemActionOutput(stdout: stdout, stderr: stderr, exitCode: result)
+        } catch {
+            return SystemActionOutput(stdout: "", stderr: error.localizedDescription, exitCode: -1)
+        }
     }
     
     public func executeBlock(_ description: String?, _ block: () throws -> Void) rethrows {

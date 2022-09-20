@@ -1,25 +1,14 @@
 {
-  "object": {
-    "pins": [
-      {
-        "package": "Rainbow",
-        "repositoryURL": "https://github.com/onevcat/Rainbow.git",
-        "state": {
-          "branch": null,
-          "revision": "e0dada9cd44e3fa7ec3b867e49a8ddbf543e3df3",
-          "version": "4.0.1"
-        }
-      },
-      {
-        "package": "SwiftShell",
-        "repositoryURL": "https://github.com/kareman/SwiftShell.git",
-        "state": {
-          "branch": null,
-          "revision": "99680b2efc7c7dbcace1da0b3979d266f02e213c",
-          "version": "5.1.0"
-        }
+  "pins" : [
+    {
+      "identity" : "rainbow",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/onevcat/Rainbow.git",
+      "state" : {
+        "revision" : "e0dada9cd44e3fa7ec3b867e49a8ddbf543e3df3",
+        "version" : "4.0.1"
       }
-    ]
-  },
-  "version": 1
+    }
+  ],
+  "version" : 2
 }
