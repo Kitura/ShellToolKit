@@ -37,4 +37,8 @@ final class DirUtilityTests: XCTestCase {
         XCTAssertFalse(isFile, "/bin should be a directory!")
     }
 
+//    func testThat_FileList_GetsRegularFiles() throws {
+//        let files = try DirUtility.shared.files(in: URL(fileURLWithPath: "/tmp"), options: .recurse)
+//        print("files: \(files)")
+//    }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-class ShellCmd {
+public class ShellCmd {
     public var environment: Spawn.Environment {
         get {
             self.spawnCmd.environment
@@ -98,21 +98,27 @@ class ShellCmd {
     @discardableResult
     public func runAndWait(_ command: [String] = [], environment: Spawn.Environment?=nil, stdin: Spawn.StreamWriterHandler = .discard, stdout: Spawn.StreamReaderHandler = .passthru, stderr: Spawn.StreamReaderHandler = .passthru) throws -> Int {
 
-        return try self.runAndWait(command, environment: environment, stdin: stdin, stdout: stdout, stderr: stderr)
+        // do nothing if no command was given
+        guard command.count > 0 else {
+            return 0
+        }
+
+        let shellArgs = [ "-c", command.map({"'\($0)'"}).joined(separator: " ") ]
+        return try self.spawnCmd.runAndWait(shellArgs, environment: environment, stdin: stdin, stdout: stdout, stderr: stderr)
     }
 
 
     public struct Output {
-        let exitStatus: Int
-        let stdout: String
-        let stderr: String
+        public let exitStatus: Int
+        public let stdout: String
+        public let stderr: String
 
-        var didSucceed: Bool {
+        public var didSucceed: Bool {
             return exitStatus == Int(EXIT_SUCCESS)
         }
     }
     @discardableResult
-    public func runAndWait(_ command: [String], environment: Spawn.Environment?=nil, stdin: String?=nil) throws -> Output {
+    public func runCapture(_ command: [String], environment: Spawn.Environment?=nil, stdin: String?=nil) throws -> Output {
 
         let stdinHandler: Spawn.StreamWriterHandler
 
@@ -139,8 +145,8 @@ class ShellCmd {
     }
 
     @discardableResult
-    public func runAndWait(_ command: String..., environment: Spawn.Environment?=nil, stdin: String?=nil) throws -> Output {
+    public func runCapture(_ command: String..., environment: Spawn.Environment?=nil, stdin: String?=nil) throws -> Output {
 
-        return try self.runAndWait(command, environment: environment, stdin: stdin)
+        return try self.runCapture(command, environment: environment, stdin: stdin)
     }
 }

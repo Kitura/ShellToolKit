@@ -40,7 +40,7 @@ public class DirUtility {
     public func duplicateFiles(from: URL, to: URL) throws {
         let cmd = "(cd '\(from.path)' && tar -c -f - --exclude .git . ) | (cd '\(to.path)' && tar xf - )"
 
-        try ShellCmd().runAndWait(cmd)
+        try ShellCmd().runCapture(cmd)
     }
     
     /// Recursively substitute text in filenames and directory names.
@@ -161,7 +161,7 @@ public class DirUtility {
         guard !executable.contains("/") else {
             return executable
         }
-        guard let output = try? ShellCmd().runAndWait(["/usr/bin/which", executable]),
+        guard let output = try? ShellCmd().runCapture(["/usr/bin/which", executable]),
               output.didSucceed
         else {
             return nil
@@ -175,6 +175,62 @@ public class DirUtility {
     /// - Returns: true if in path; false otherwise
     public func isExecutableInPath(_ executable: String) -> Bool {
         return self.executablePath(executable) != nil
+    }
+
+
+    public struct FilesOptions: OptionSet {
+        public let rawValue: Int
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+        public static let regularFiles = FilesOptions(rawValue: 1<<0)
+        public static let includeDirectories = FilesOptions(rawValue: 1<<1)
+        public static let includeSpecialFiles = FilesOptions(rawValue: 1<<2)
+        public static let includeSymbolicLinks = FilesOptions(rawValue: 1<<3)
+        public static let recurse = FilesOptions(rawValue: 1<<4)
+    }
+
+    /// Get file listing of a directory
+    /// - Parameters:
+    ///   - dir: directory to get file listing
+    ///   - options: search options
+    /// - Returns: list of files found
+    public func files(in dir: URL, options: FilesOptions = [.regularFiles]) throws -> [URL] {
+        let fm = self.fileManager
+        var returnFiles: [URL] = []
+
+        let files = try fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: [.nameKey])
+
+        for file in files {
+            let fileType = try self.fileAttributeType(url: file)
+            switch fileType {
+            case .typeRegular:
+                returnFiles.append(file)
+            case .typeDirectory:
+                if options.contains(.includeDirectories) {
+                    returnFiles.append(file)
+                }
+                if options.contains(.recurse) {
+                    returnFiles.append(contentsOf: try self.files(in: file, options: options))
+                }
+            case .typeSymbolicLink:
+                if options.contains(.includeSymbolicLinks) {
+                    returnFiles.append(file)
+                }
+            case .typeBlockSpecial, .typeCharacterSpecial, .typeSocket, .typeUnknown:
+                fallthrough
+            default:
+                if options.contains(.includeSpecialFiles) {
+                    returnFiles.append(file)
+                }
+
+            }
+
+        }
+
+        print("files: \(files)")
+
+        return []
     }
     
     // MARK: Temporary filenames
