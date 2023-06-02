@@ -33,8 +33,10 @@ public class SystemActionReal: SystemAction {
     public func removeItem(at url: URL, options: ShellToolKit.RemoveItemOptions) throws {
         let dir = DirUtility.shared
 
-        if !options.contains(.ignoreIfNotExist) {
-            if !dir.fileExists(url: url) {
+        if !dir.fileExists(url: url) {
+            if options.contains(.ignoreIfNotExist) {
+                return
+            } else {
                 throw SystemActionFailure.pathDoesNotExist(url)
             }
         }
